@@ -23,4 +23,6 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
     Router::get('/dang-nhap', function () {
         return \App\Core\Response::html("<h1>Đăng nhập cán bộ HP-eGov</h1><p>Phân hệ xác thực sẽ được triển khai chi tiết tại Phiên 5.</p>");
     })->name('admin.login');
+
+    Router::get('/ui-kit', [\App\Controllers\Admin\UiKitController::class, 'index'])->name('admin.ui_kit');
 });

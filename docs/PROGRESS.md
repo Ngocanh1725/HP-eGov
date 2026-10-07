@@ -16,7 +16,7 @@
 | **1** | **Phân tích & Thiết kế hệ thống** | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | **Hoàn thành** | 2026-10-07 | `docs/01_PHAN_TICH_THIET_KE.md` |
 | **2** | **Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu** | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | **Hoàn thành** | 2026-10-07 | `database/schema.sql`, `database/seed.sql`, `docs/02_THIET_KE_CSDL.md` |
 | **3** | **Lõi MVC (Core Framework)** | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | **Hoàn thành** | 2026-10-07 | `app/Core/*`, `tests/run.php`, `public/index.php` |
-| **4** | Design System & Layout giao diện | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | *Chưa làm* | - | Kế hoạch: `public/assets/*`, `app/Views/layouts/*` |
+| **4** | **Design System & Layout giao diện** | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | **Hoàn thành** | 2026-10-07 | `public/assets/*`, `layouts/*`, `ui_kit.php` |
 | **5** | Xác thực & Phân quyền RBAC đa cấp | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | *Chưa làm* | - | Kế hoạch: PH11, `app/Services/AuthService.php`, `AuditService.php` |
 | **6** | Danh mục dùng chung (MDM) & Quy trình | MDM ĐVHC, TTHC quốc gia, BPMN-lite quy trình liên thông, E-Form designer JSON | *Chưa làm* | - | Kế hoạch: PH09, PH10, `app/Services/WorkflowEngine.php` |
 | **7** | Cổng Dịch vụ công (Công dân) | Wizard nộp hồ sơ, Auto-fill VNeID, Kho số hóa công dân, tra cứu QR, SIPAS | *Chưa làm* | - | Kế hoạch: PH01, `app/Controllers/Portal/*` |
@@ -155,7 +155,51 @@
   - `app/Controllers/Portal/HomeController.php`, `app/Views/portal/home.php`
   - `routes/web.php`, `routes/api.php`
   - `tests/run.php`, `tests/Unit/*.php` (5 test suites)
-- **Kế hoạch cho Phiên 4:**
-  - Chạy **Phiên 4/16 – Design System & Layout giao diện**: Xây dựng bộ giao diện đồng bộ theo chuẩn hành chính hiện đại (màu Navy `#0B2E59`, Đỏ cờ `#C8102E`, Vàng kim `#D4A017`, font Be Vietnam Pro), tích hợp Chart.js, HTML5-QRCode cục bộ (không dùng CDN), layout Portal công dân, layout Admin cán bộ Một cửa/Thụ lý/Lãnh đạo, UI Kit đầy đủ components (buttons, tables, status badges, SLA badges, breadcrumbs, modals, toasts).
+- **Kế hoạch cho phiên tiếp theo:** Chuyển sang Phiên 4 thực hiện Design System & Layout giao diện.
+
+### PHIÊN 4: DESIGN SYSTEM & LAYOUT GIAO DIỆN
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. Xây dựng bộ Design System CSS hoàn chỉnh trong `public/assets/css/`:
+     - `tokens.css`: Thiết lập toàn bộ biến CSS bản sắc Hải Phòng (Navy `#0B2E59`, Đỏ cờ `#C8102E`, Vàng kim `#D4A017`, Nền `#F4F6FA`, SLA Xanh `#16A34A`, Vàng `#F59E0B`, Đỏ `#DC2626`, 9 màu trạng thái Thông tư 01). Tích hợp Chế độ tối (Dark Mode) cho phân hệ cán bộ qua thuộc tính `[data-theme="dark"]`.
+     - `base.css`: CSS Reset hiện đại, tích hợp Font Be Vietnam Pro, thang kích thước chữ hành chính chuẩn và hệ thống utility classes linh hoạt.
+     - `components.css`: Phát triển đầy đủ các thành phần UI tái sử dụng: Buttons (Primary, Accent, Gold, Outline, Icon), Forms (Floating Labels, Validation feedback), Data Tables (sắp xếp cột, tìm kiếm tức thì), KPI Cards (chỉ số, tỷ lệ tăng trưởng, icon box), Status Badges (9 trạng thái Thông tư 01/2018), SLA Badges (Xanh, Vàng, Đỏ có micro-animation nhấp nháy báo động), Stepper 5 bước quy trình (§2.1), Workflow Timeline (chuỗi luân chuyển), Modal Dialogs, Toast Notifications (4 trạng thái), Notification Dropdown, Tabs, Breadcrumbs, Empty States, Skeleton Loading Shimmer và Drag-and-drop File Upload có thanh tiến trình.
+     - `layout.css`: Định dạng khung bố cục Cổng DVC và Phân hệ Cán bộ, Sidebar thu gọn (Collapsible), Topbar đơn vị làm việc và menu responsive thích ứng hoàn hảo cho cả Desktop 1366px và Mobile 390px.
+     - `print.css`: Thể thức văn bản hành chính theo Nghị định 30/2020/NĐ-CP (khổ A4, Quốc hiệu, Tiêu ngữ, số ký hiệu, nơi nhận, bảng ký tên và dấu số, tự động ẩn giao diện web khi in `@media print`).
+  2. Tải và lưu trữ cục bộ 100% tài nguyên Font & Thư viện JS Vendor:
+     - Tải 12 tệp WOFF2 Font Be Vietnam Pro phục vụ On-Premise nội bộ.
+     - Tải `Chart.js 4.4.1` UMD bundle vào `public/assets/vendor/chartjs/chart.umd.js`.
+     - Tải `qrcode-generator 1.4.4` vào `public/assets/vendor/qrcode/qrcode.min.js`.
+     - Tải `html5-qrcode 2.3.8` vào `public/assets/vendor/html5-qrcode/html5-qrcode.min.js`.
+     - Xây dựng tài liệu danh mục thư viện, phiên bản và bản quyền tại `docs/THU_VIEN.md` (cam kết 100% không dùng CDN internet, an toàn trên mạng TSLCD cấp II).
+  3. Xây dựng 4 Master Layouts và hệ thống Partials:
+     - `app/Views/layouts/portal.php`: Layout Cổng DVC công dân, Header có Quốc huy & Biểu trưng Hải Phòng cách điệu (tự vẽ bằng pure SVG, không bản quyền), thanh menu điều hướng 6 mục, Footer cơ quan chủ quản.
+     - `app/Views/layouts/admin.php`: Layout Bàn làm việc cán bộ, Sidebar thu gọn, Topbar hiển thị node đơn vị hiện tại, chuông thông báo, nút Dark Mode, avatar cán bộ.
+     - `app/Views/layouts/auth.php`: Layout đăng nhập chuyên biệt cho Cán bộ và Công dân (VNeID).
+     - `app/Views/layouts/print.php`: Layout xem trước và in ấn A4 trực tiếp qua trình duyệt.
+     - Hệ thống 8 Partials: `header.php`, `footer.php`, `sidebar.php`, `topbar.php`, `breadcrumb.php`, `flash.php`, `sla_badge.php`, `status_badge.php`, `stepper.php`, `timeline.php`.
+  4. Xây dựng `public/assets/js/app.js` module hóa ES6:
+     - Tuân thủ tuyệt đối CSP Cấp độ 3 (không dùng bất kỳ inline script nào).
+     - Cung cấp Fetch wrapper tự động gắn `X-CSRF-TOKEN`, Toast Manager, Modal/Confirm Dialog, Dark Mode switch lưu localStorage, Collapsible Sidebar, Client-side table sorter/search và Dropzone file upload.
+  5. Xây dựng trang Thư viện giao diện UI Kit:
+     - Tuyến đường `/admin/ui-kit` (Controller `UiKitController`, View `app/Views/admin/ui_kit.php`).
+     - Trình diễn thực tế đầy đủ 10 nhóm thành phần giao diện kèm Biểu đồ Doughnut Chart.js và Mã QR động.
+  6. Kiểm tra trực quan bằng Browser Subagent:
+     - Đã kiểm tra tự động trên trình duyệt thật ở cả 2 độ phân giải chuẩn: Desktop 1366x768 và Mobile 375x812/390x844.
+     - Không có lỗi JavaScript Console nào xảy ra.
+     - Chụp ảnh màn hình trực quan và lưu trữ vào `docs/screenshots/`: `ui_kit_desktop_top.png`, `ui_kit_desktop_middle.png`, `ui_kit_modal.png`, `ui_kit_mobile_top.png`, `ui_kit_mobile_middle.png`.
+- **Tệp tin đã tạo/cập nhật:**
+  - `public/assets/css/tokens.css`, `base.css`, `components.css`, `layout.css`, `print.css`
+  - `public/assets/fonts/be-vietnam-pro.css`, 12 tệp `font_*.woff2`
+  - `public/assets/vendor/chartjs/chart.umd.js`, `qrcode/qrcode.min.js`, `html5-qrcode/html5-qrcode.min.js`
+  - `docs/THU_VIEN.md`, `docs/screenshots/*` (5 tệp ảnh)
+  - `public/assets/js/app.js`, `public/assets/js/ui-kit.js`
+  - `app/Views/layouts/portal.php`, `admin.php`, `auth.php`, `print.php`
+  - `app/Views/partials/*` (10 file)
+  - `app/Controllers/Admin/UiKitController.php`, `app/Views/admin/ui_kit.php`
+  - `app/Views/portal/home.php`, `routes/web.php`
+- **Kế hoạch cho Phiên 5:**
+  - Chạy **Phiên 5/16 – Xác thực & Phân quyền RBAC đa cấp**: Xây dựng Guard cán bộ & công dân, SSO VNeID mock, đăng nhập mật khẩu Bcrypt + Captcha (GD), chống Brute-force (khóa 15 phút sau 5 lần sai), phân quyền 7 vai trò bám sát ma trận quyền §4.1, kiểm soát phạm vi dữ liệu Data Scope theo cây đơn vị `don_vi.path`, Audit log chuỗi băm WORM SHA-256 (`nhat_ky_kiem_toan`).
+
 
 

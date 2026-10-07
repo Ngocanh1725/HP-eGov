@@ -1,0 +1,209 @@
+/**
+ * ============================================================================
+ * HP-eGov DESIGN SYSTEM: IN ẤN & VĂN BẢN HÀNH CHÍNH (PRINT STYLES)
+ * Thể thức văn bản hành chính nhà nước theo Nghị định 30/2020/NĐ-CP
+ * Chuẩn khổ giấy A4, lề trên 20mm, lề dưới 20mm, lề trái 30mm, lề phải 15-20mm
+ * ============================================================================
+ */
+
+@page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 25mm;
+}
+
+.print-preview-container {
+    background: #ffffff;
+    max-width: 210mm;
+    min-height: 297mm;
+    margin: 2rem auto;
+    padding: 20mm 15mm 20mm 25mm;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    color: #000000;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13pt;
+    line-height: 1.4;
+}
+
+/* 1. Phần đầu văn bản (Header Hành chính) */
+.doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+}
+
+.doc-header-left {
+    text-align: center;
+    width: 45%;
+}
+
+.doc-org-parent {
+    font-size: 11pt;
+    text-transform: uppercase;
+    font-weight: normal;
+}
+
+.doc-org-name {
+    font-size: 11pt;
+    text-transform: uppercase;
+    font-weight: bold;
+    border-bottom: 1px solid #000000;
+    display: inline-block;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+}
+
+.doc-code {
+    font-size: 11pt;
+    margin-top: 4px;
+}
+
+.doc-header-right {
+    text-align: center;
+    width: 55%;
+}
+
+.doc-national-name {
+    font-size: 11pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.doc-motto {
+    font-size: 12pt;
+    font-weight: bold;
+    display: inline-block;
+    border-bottom: 1px solid #000000;
+    padding-bottom: 2px;
+}
+
+.doc-date {
+    font-size: 12pt;
+    font-style: italic;
+    margin-top: 6px;
+    text-align: right;
+    padding-right: 15px;
+}
+
+/* 2. Tiêu đề văn bản & Trích yếu */
+.doc-title-block {
+    text-align: center;
+    margin: 2rem 0 1.5rem;
+}
+
+.doc-title {
+    font-size: 15pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.doc-subtitle {
+    font-size: 13pt;
+    font-style: italic;
+}
+
+/* 3. Nội dung văn bản */
+.doc-content {
+    text-align: justify;
+    margin-bottom: 2rem;
+}
+
+.doc-content p {
+    text-indent: 1.27cm; /* Thụt đầu dòng chuẩn 1-1.27cm */
+    margin-bottom: 0.6rem;
+}
+
+.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.doc-table th, .doc-table td {
+    border: 1px solid #000000;
+    padding: 6px 10px;
+    font-size: 12pt;
+}
+
+.doc-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* 4. Phần chân văn bản (Nơi nhận & Chữ ký) */
+.doc-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    page-break-inside: avoid;
+}
+
+.doc-recipients {
+    width: 45%;
+    font-size: 10pt;
+}
+
+.doc-recipients-title {
+    font-weight: bold;
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.doc-recipients-list {
+    list-style: none;
+    padding-left: 10px;
+}
+
+.doc-signature {
+    text-align: center;
+    width: 50%;
+}
+
+.doc-signer-position {
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 4rem; /* Khoảng trống ký tên & đóng dấu */
+}
+
+.doc-signer-name {
+    font-weight: bold;
+}
+
+.digital-signature-box {
+    border: 2px dashed #DC2626;
+    background: #FFF5F5;
+    padding: 6px 10px;
+    display: inline-block;
+    color: #DC2626;
+    font-size: 9pt;
+    text-align: left;
+    border-radius: 4px;
+}
+
+/* ============================================================================
+   QUY TẮC KHI THỰC HIỆN LỆNH IN (@media print)
+   ============================================================================ */
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    /* Ẩn toàn bộ các thành phần điều hướng giao diện web */
+    .portal-header, .portal-footer, .admin-sidebar, .admin-topbar,
+    .no-print, .btn, .breadcrumb, .toast-container, .modal-backdrop {
+        display: none !important;
+    }
+
+    .print-preview-container {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+}

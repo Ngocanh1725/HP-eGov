@@ -1,301 +1,155 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($title ?? 'HP-eGov Hải Phòng') ?> | UBND TP. Hải Phòng</title>
-    <meta name="description" content="Hệ thống thông tin giải quyết thủ tục hành chính và Một cửa điện tử liên thông TP. Hải Phòng (HP-eGov)">
-    <style>
-        :root {
-            --primary: #0B2E59;      /* Navy chủ đạo */
-            --primary-dark: #071F3D;
-            --accent-red: #C8102E;   /* Đỏ cờ nhấn */
-            --accent-gold: #D4A017;  /* Vàng kim */
-            --bg-light: #F4F6FA;     /* Nền sáng thanh lịch */
-            --text-dark: #1E293B;
-            --text-muted: #64748B;
-            --success: #16A34A;
-        }
+<?php
+$this->layout('layouts/portal', [
+    'title' => $title ?? 'Cổng Dịch vụ công TP. Hải Phòng',
+    'description' => 'Hệ thống thông tin giải quyết thủ tục hành chính và Một cửa điện tử liên thông TP. Hải Phòng (HP-eGov)'
+]);
+$this->startSection('content');
+?>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<!-- Banner Chào mừng & Tìm kiếm nhanh TTHC -->
+<section class="card mb-4" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%); color:#ffffff; padding: 3rem 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); border: none;">
+    <div style="max-width: 820px; margin: 0 auto; text-align: center;">
+        <span class="badge" style="background: rgba(212, 160, 23, 0.2); color: var(--color-accent-gold); border: 1px solid var(--color-accent-gold); padding: 4px 14px; border-radius: 9999px; font-size: 0.825rem; font-weight: 700; margin-bottom: 1rem; display: inline-block;">
+            CHÍNH QUYỀN ĐIỆN TỬ TP. HẢI PHÒNG
+        </span>
+        <h2 style="font-size: 2.2rem; color: #ffffff; font-weight: 800; margin-bottom: 0.75rem; letter-spacing: -0.5px;">
+            Dịch vụ công Trực tuyến & Một cửa Điện tử
+        </h2>
+        <p style="font-size: 1.05rem; color: #cbd5e1; margin-bottom: 2rem;">
+            Công khai, minh bạch, lấy người dân và doanh nghiệp làm trung tâm phục vụ. Cam kết giải quyết đúng và trước hạn ≥ 98%.
+        </p>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg-light);
-            color: var(--text-dark);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        <!-- Thanh tìm kiếm TTHC nổi bật -->
+        <div style="background: #ffffff; border-radius: var(--radius-lg); padding: 6px; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <input type="text" class="form-control" style="border:none;box-shadow:none;font-size:1rem;padding:0.75rem 1rem;" placeholder="Nhập tên thủ tục hành chính (Ví dụ: Khai sinh, Cấp giấy phép xây dựng, Biến động đất đai...)">
+            <button type="button" class="btn btn-primary btn-lg" style="padding: 0.75rem 1.75rem;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                Tìm kiếm
+            </button>
+        </div>
+    </div>
+</section>
 
-        /* Header Quốc gia & Thành phố */
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: #ffffff;
-            padding: 24px 20px;
-            box-shadow: 0 4px 20px rgba(11, 46, 89, 0.15);
-            border-bottom: 3px solid var(--accent-gold);
-        }
+<!-- Chỉ số thực hiện thời gian thực -->
+<section class="mb-4">
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <div class="kpi-label">Đơn vị hành chính</div>
+                <div class="kpi-value"><?= e((string)($dvhcCount ?? 26)) ?></div>
+                <div class="kpi-subtext">15 quận/huyện & các xã/phường</div>
+            </div>
+            <div class="kpi-icon-box">🏛</div>
+        </div>
 
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <div class="kpi-label">Thủ tục công bố</div>
+                <div class="kpi-value"><?= e((string)($tthcCount ?? 12)) ?></div>
+                <div class="kpi-subtext">Đã đồng bộ CSDL Quốc gia</div>
+            </div>
+            <div class="kpi-icon-box">📜</div>
+        </div>
 
-        .brand-box {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <div class="kpi-label">Hồ sơ đã tiếp nhận</div>
+                <div class="kpi-value">205</div>
+                <div class="kpi-subtext">Trong 6 tháng gần nhất</div>
+            </div>
+            <div class="kpi-icon-box">📁</div>
+        </div>
 
-        .logo-emblem {
-            width: 54px;
-            height: 54px;
-            background: var(--accent-red);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-gold);
-            font-weight: 800;
-            font-size: 24px;
-            box-shadow: 0 4px 10px rgba(200, 16, 46, 0.3);
-            border: 2px solid #ffffff;
-        }
+        <div class="kpi-card">
+            <div class="kpi-info">
+                <div class="kpi-label">Tỷ lệ đúng hạn</div>
+                <div class="kpi-value text-success">98.5%</div>
+                <div class="kpi-subtext">Chỉ tiêu thành phố: ≥ 98%</div>
+            </div>
+            <div class="kpi-icon-box" style="background:#DCFCE7;color:#16A34A;">🎯</div>
+        </div>
+    </div>
+</section>
 
-        .brand-text h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
+<!-- Các nhóm dịch vụ công trực tuyến nổi bật -->
+<section class="mb-4">
+    <div class="card" style="background:var(--bg-surface);padding:2rem;border-radius:var(--radius-lg);border:1px solid var(--border-color);box-shadow:var(--shadow-card);">
+        <div class="d-flex justify-between align-center mb-3">
+            <div>
+                <h3>Dịch vụ công Trực tuyến Tiêu biểu</h3>
+                <p class="text-muted" style="margin-bottom:0;">Nộp hồ sơ trực tuyến hoàn toàn qua Cổng DVC Hải Phòng với định danh VNeID</p>
+            </div>
+            <a href="<?= e(url('/thu-tuc-hanh-chinh')) ?>" class="btn btn-outline-primary btn-sm">Xem tất cả thủ tục &rarr;</a>
+        </div>
 
-        .brand-text p {
-            font-size: 13px;
-            color: #cbd5e1;
-            font-weight: 400;
-        }
-
-        .status-pill {
-            background: rgba(22, 163, 74, 0.2);
-            border: 1px solid var(--success);
-            color: #4ade80;
-            padding: 6px 14px;
-            border-radius: 9999px;
-            font-size: 13px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        /* Container chính */
-        .main-content {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-            flex: 1;
-            width: 100%;
-        }
-
-        .hero-banner {
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 36px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            border-left: 6px solid var(--primary);
-            margin-bottom: 30px;
-        }
-
-        .hero-banner h2 {
-            font-size: 26px;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-
-        .hero-banner p {
-            color: var(--text-muted);
-            font-size: 16px;
-            max-width: 800px;
-        }
-
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-            border: 1px solid #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .card-desc {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .tech-box {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 28px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-            border: 1px solid #e2e8f0;
-        }
-
-        .tech-box h3 {
-            font-size: 18px;
-            color: var(--primary);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .badge-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .tech-tag {
-            background: #f1f5f9;
-            color: #334155;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            border: 1px solid #cbd5e1;
-        }
-
-        /* Footer */
-        .footer {
-            background: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            padding: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-top: auto;
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="header-container">
-            <div class="brand-box">
-                <div class="logo-emblem">HP</div>
-                <div class="brand-text">
-                    <h1>ỦY BAN NHÂN DÂN THÀNH PHỐ HẢI PHÒNG</h1>
-                    <p>Hệ thống Một cửa điện tử liên thông & Cổng Dịch vụ công (HP-eGov)</p>
+        <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="card" style="padding:1.25rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-hover);">
+                <div class="d-flex justify-between align-center mb-2">
+                    <span class="badge-status badge-status-hoan-thanh">Toàn trình</span>
+                    <small class="text-muted">Cấp Xã/Phường</small>
+                </div>
+                <h4 style="font-size:1.05rem;color:var(--color-primary);margin-bottom:0.4rem;">Đăng ký khai sinh trực tuyến</h4>
+                <p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Liên thông đăng ký khai sinh, thường trú và cấp thẻ BHYT trẻ em dưới 6 tuổi.</p>
+                <div class="d-flex justify-between align-center">
+                    <span class="text-muted" style="font-size:0.8rem;">Thời hạn: <strong>1 ngày</strong></span>
+                    <a href="<?= e(url('/nop-ho-so?ma=0001')) ?>" class="btn btn-sm btn-primary">Nộp hồ sơ</a>
                 </div>
             </div>
-            <div class="status-pill">
-                <span class="status-dot"></span>
-                <span>Hệ thống đang hoạt động</span>
+
+            <div class="card" style="padding:1.25rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-hover);">
+                <div class="d-flex justify-between align-center mb-2">
+                    <span class="badge-status badge-status-hoan-thanh">Toàn trình</span>
+                    <small class="text-muted">Cấp Xã/Phường</small>
+                </div>
+                <h4 style="font-size:1.05rem;color:var(--color-primary);margin-bottom:0.4rem;">Chứng thực bản sao điện tử</h4>
+                <p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Chứng thực bản sao điện tử từ bản chính giấy có ký số và lưu kho dữ liệu công dân.</p>
+                <div class="d-flex justify-between align-center">
+                    <span class="text-muted" style="font-size:0.8rem;">Thời hạn: <strong>4 giờ</strong></span>
+                    <a href="<?= e(url('/nop-ho-so?ma=0002')) ?>" class="btn btn-sm btn-primary">Nộp hồ sơ</a>
+                </div>
+            </div>
+
+            <div class="card" style="padding:1.25rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-hover);">
+                <div class="d-flex justify-between align-center mb-2">
+                    <span class="badge-status badge-status-dang-xu-ly">Một phần</span>
+                    <small class="text-muted">Cấp Quận/Huyện</small>
+                </div>
+                <h4 style="font-size:1.05rem;color:var(--color-primary);margin-bottom:0.4rem;">Cấp Giấy phép xây dựng nhà ở riêng lẻ</h4>
+                <p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Cấp phép xây dựng công trình nhà ở riêng lẻ tại đô thị thuộc thẩm quyền UBND quận/huyện.</p>
+                <div class="d-flex justify-between align-center">
+                    <span class="text-muted" style="font-size:0.8rem;">Thời hạn: <strong>15 ngày</strong></span>
+                    <a href="<?= e(url('/nop-ho-so?ma=0021')) ?>" class="btn btn-sm btn-primary">Nộp hồ sơ</a>
+                </div>
+            </div>
+
+            <div class="card" style="padding:1.25rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-hover);">
+                <div class="d-flex justify-between align-center mb-2">
+                    <span class="badge-status badge-status-dang-xu-ly">Liên thông</span>
+                    <small class="text-muted">Cấp Thành phố</small>
+                </div>
+                <h4 style="font-size:1.05rem;color:var(--color-primary);margin-bottom:0.4rem;">Chủ trương đầu tư dự án logistics cảng biển</h4>
+                <p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Liên thông đa cơ quan: Quận Hồng Bàng &rarr; Sở Xây dựng &rarr; Sở TN&MT &rarr; Sở KH&ĐT &rarr; UBND TP.</p>
+                <div class="d-flex justify-between align-center">
+                    <span class="text-muted" style="font-size:0.8rem;">Thời hạn: <strong>35 ngày</strong></span>
+                    <a href="<?= e(url('/nop-ho-so?ma=0042')) ?>" class="btn btn-sm btn-primary">Nộp hồ sơ</a>
+                </div>
             </div>
         </div>
-    </header>
+    </div>
+</section>
 
-    <main class="main-content">
-        <section class="hero-banner">
-            <h2>Hệ thống HP-eGov đang hoạt động</h2>
-            <p>
-                Nền tảng Lõi MVC PHP 8.2 thuần đã được khởi động thành công với kiến trúc chuẩn bảo mật Cấp độ 3, 
-                tách biệt CSDL Master/Replica, kiểm định CSRF, phân quyền RBAC và cơ chế bất biến dữ liệu hành chính.
-            </p>
-        </section>
+<!-- Tra cứu nhanh tiến độ hồ sơ -->
+<section class="card" style="background:var(--bg-surface);padding:2rem;border-radius:var(--radius-lg);border:1px solid var(--border-color);box-shadow:var(--shadow-card);">
+    <div class="d-flex justify-between align-center flex-wrap gap-3">
+        <div style="max-width:540px;">
+            <h3>Tra cứu Tiến độ Hồ sơ & Biên nhận QR</h3>
+            <p class="text-muted mb-0">Nhập mã hồ sơ ghi trên Giấy tiếp nhận và hẹn trả kết quả để xem chi tiết lịch sử xử lý, tiến độ SLA và kết quả ký số.</p>
+        </div>
+        <div class="d-flex gap-2" style="flex:1;max-width:440px;">
+            <input type="text" class="form-control" placeholder="Mã hồ sơ: 000.04.15.H21-..." value="000.04.15.H21-260115-0042-000101">
+            <button type="button" class="btn btn-gold" style="white-space:nowrap;">Tra cứu</button>
+        </div>
+    </div>
+</section>
 
-        <section class="grid-cards">
-            <div class="card">
-                <div class="card-title">Cơ sở dữ liệu</div>
-                <div class="card-value" style="font-size: 20px; color: var(--success); margin-top: 8px;">
-                    <?= e($dbStatus) ?>
-                </div>
-                <div class="card-desc">MariaDB 10.4+ InnoDB (50 bảng, 6 triggers WORM)</div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Đơn vị hành chính</div>
-                <div class="card-value"><?= e((string)$dvhcCount) ?></div>
-                <div class="card-desc">15 quận/huyện/thành phố và xã/phường Hải Phòng</div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Thủ tục hành chính</div>
-                <div class="card-value"><?= e((string)$tthcCount) ?></div>
-                <div class="card-desc">TTHC trọng điểm tích hợp E-Form JSON & BPMN</div>
-            </div>
-        </section>
-
-        <section class="tech-box">
-            <h3>Đặc tả Kiến trúc Lõi MVC (Phiên 3/16)</h3>
-            <div class="badge-list">
-                <span class="tech-tag">PHP 8.2 Strict Types</span>
-                <span class="tech-tag">PSR-4 Pure Autoloader</span>
-                <span class="tech-tag">Dynamic Regex Router</span>
-                <span class="tech-tag">PDO Master/Replica</span>
-                <span class="tech-tag">No-Physical-Delete Model</span>
-                <span class="tech-tag">Security Headers Cấp độ 3</span>
-                <span class="tech-tag">Rate Limiting 60 req/min</span>
-                <span class="tech-tag">Hash Chain Audit WORM</span>
-                <span class="tech-tag">Vietnamese Validator</span>
-                <span class="tech-tag">Custom Test Runner</span>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <p>&copy; 2026 Ủy ban nhân dân Thành phố Hải Phòng. Phát triển theo chuẩn Kiến trúc Chính quyền điện tử Việt Nam.</p>
-    </footer>
-</body>
-</html>
+<?php $this->endSection(); ?>

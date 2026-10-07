@@ -1,0 +1,118 @@
+/**
+ * ============================================================================
+ * HP-eGov DESIGN SYSTEM: DESIGN TOKENS
+ * Phối màu hành chính hiện đại TP. Hải Phòng:
+ * Navy (#0B2E59), Đỏ cờ (#C8102E), Vàng kim (#D4A017), Nền (#F4F6FA)
+ * Hỗ trợ Chế độ Tối (Dark Mode) cho khu vực cán bộ xử lý
+ * ============================================================================
+ */
+
+:root {
+    /* Màu thương hiệu & Bản sắc Hải Phòng */
+    --color-primary: #0B2E59;         /* Navy chủ đạo - uy nghiêm, vững chãi */
+    --color-primary-light: #164682;   /* Navy sáng */
+    --color-primary-dark: #071F3D;    /* Navy tối */
+    --color-primary-subtle: #E8EEF5;  /* Navy siêu nhạt (nền badge/active) */
+
+    --color-accent-red: #C8102E;      /* Đỏ cờ nhấn mạnh */
+    --color-accent-red-hover: #A50B24;
+    --color-accent-gold: #D4A017;     /* Vàng kim hành chính */
+    --color-accent-gold-subtle: #FFF9E6;
+
+    /* Màu kiểm soát tiến độ SLA (§2.2) */
+    --color-sla-green: #16A34A;       /* XANH: Đúng hạn, an toàn */
+    --color-sla-green-subtle: #DCFCE7;
+    --color-sla-yellow: #F59E0B;      /* VÀNG: Cảnh báo sắp đến hạn */
+    --color-sla-yellow-subtle: #FEF3C7;
+    --color-sla-red: #DC2626;         /* ĐỎ: Quá hạn - bắt buộc Mẫu 04 */
+    --color-sla-red-subtle: #FEE2E2;
+
+    /* Màu trạng thái hồ sơ (9 trạng thái Thông tư 01/2018) */
+    --color-status-cho-tiep-nhan: #0284C7;
+    --color-status-moi-tiep-nhan: #2563EB;
+    --color-status-dang-xu-ly: #D97706;
+    --color-status-cho-bo-sung: #EA580C;
+    --color-status-cho-phe-duyet: #7C3AED;
+    --color-status-hoan-thanh: #16A34A;
+    --color-status-da-tra-kq: #059669;
+    --color-status-tu-choi: #DC2626;
+    --color-status-da-huy: #6B7280;
+
+    /* Thang màu trung tính (Neutral - Chế độ sáng) */
+    --bg-body: #F4F6FA;
+    --bg-surface: #FFFFFF;
+    --bg-surface-elevated: #FFFFFF;
+    --bg-sidebar: #0B2E59;
+    --bg-topbar: #FFFFFF;
+    --bg-muted: #F1F5F9;
+    --bg-hover: #F8FAFC;
+
+    --text-main: #1E293B;             /* Chữ chính đậm rõ */
+    --text-muted: #64748B;            /* Chữ phụ, ghi chú */
+    --text-light: #94A3B8;
+    --text-inverse: #FFFFFF;
+    --text-sidebar: #E2E8F0;
+    --text-sidebar-active: #FFFFFF;
+
+    --border-color: #E2E8F0;
+    --border-color-subtle: #CBD5E1;
+    --border-focus: #0B2E59;
+
+    /* Kiểu chữ & Font */
+    --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: Consolas, "Liberation Mono", Courier, monospace;
+
+    /* Bo góc (Radius 10-14px chuẩn UX) */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-full: 9999px;
+
+    /* Đổ bóng mềm (Soft Shadows) */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 4px 20px rgba(11, 46, 89, 0.06);
+
+    /* Chuyển động & Thời gian */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Phân lớp hiển thị (Z-Index) */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-sidebar: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-toast: 1090;
+
+    /* Kích thước layout */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 72px;
+    --topbar-height: 64px;
+}
+
+/* ============================================================================
+   CHẾ ĐỘ TỐI (DARK MODE) - Dành riêng cho khu vực Cán bộ chuyên môn & Lãnh đạo
+   ============================================================================ */
+[data-theme="dark"] {
+    --bg-body: #071526;
+    --bg-surface: #0E223D;
+    --bg-surface-elevated: #152E52;
+    --bg-sidebar: #061527;
+    --bg-topbar: #0E223D;
+    --bg-muted: #1A375E;
+    --bg-hover: #163257;
+
+    --text-main: #F1F5F9;
+    --text-muted: #94A3B8;
+    --text-light: #64748B;
+    --text-inverse: #0F172A;
+
+    --border-color: #1E3A5F;
+    --border-color-subtle: #2D4F7C;
+    --border-focus: #38BDF8;
+
+    --color-primary-subtle: #193B66;
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
