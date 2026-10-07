@@ -308,36 +308,17 @@ class VanThuService
             $khoId = (int)$db->lastInsertId();
         }
 
-        // 9. PHÁT THÔNG BÁO CHO CÔNG DÂN (In-app + SMS/Zalo mock)
-        $noiDungThongBao = "Hồ sơ {$hoSo['ma_ho_so']} đã có kết quả chính thức (Số: {$capSo['so_ky_hieu']}). Kết quả điện tử đã được lưu vào Kho số hóa cá nhân.";
-        if ($congDanId > 0) {
-            // Lưu thông báo in-app
-            try {
-                $db->prepare("INSERT INTO thong_bao (
-                    nguoi_dung_id, ho_so_id, tieu_de, noi_dung, loai_thong_bao, da_doc, created_at
-                ) VALUES (
-                    :uid, :hsid, 'Kết quả giải quyết TTHC', :nd, 'HE_THONG', 0, NOW()
-                )")->execute([
-                    ':uid'  => $congDanId,
-                    ':hsid' => $hoSoId,
-                    ':nd'   => $noiDungThongBao,
-                ]);
-            } catch (\Throwable $te) {
-                // Ignore if table schema differences
-            }
-        }
-
-        // Bắn SMS/Zalo mock
-        if (!empty($hoSo['nguoi_nop_sdt'])) {
-            try {
-                $smsMock = new SmsZnsNotificationMock();
-                $smsMock->sendSms($hoSo['nguoi_nop_sdt'], "UBND TP HP: Ho so {$hoSo['ma_ho_so']} da hoan tat ({$capSo['so_ky_hieu']}). Tra cuu tai Cong DVC Hai Phong.");
-            } catch (\Throwable $se) {
-                // Ignore sms mock error
-            }
+        // 9. PHÁT THÔNG BÁO ĐA KÊNH CHO CÔNG DÂN (Outbox Pattern: In-app + SMS + Zalo + Email)
+        try {
+            ThongBaoService::guiSuKien($hoSo, 'DA_CO_KET_QUA', [
+                'so_van_ban' => $capSo['so_ky_hieu'],
+            ]);
+        } catch (\Throwable $te) {
+            // Không làm ngắt luồng hoàn tất
         }
 
         return [
+
             'success'       => true,
             'ho_so_id'      => $hoSoId,
             'ma_ho_so'      => $hoSo['ma_ho_so'],

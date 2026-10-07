@@ -682,6 +682,28 @@ CREATE TABLE `webhook_log` (
     `thoi_gian_goi` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Nhật ký gửi webhook đối tác';
 
+-- 6.4 Mẫu thông báo đa kênh (SMS Brandname, Zalo ZNS, Email, In-app)
+DROP TABLE IF EXISTS `mau_thong_bao`;
+CREATE TABLE `mau_thong_bao` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `ma_mau` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Mã mẫu định danh (TIEP_NHAN, DANG_THU_LY, YEU_CAU_BO_SUNG, DA_CO_KET_QUA, XIN_LOI_QUA_HAN)',
+    `ten_mau` VARCHAR(150) NOT NULL COMMENT 'Tên hiển thị của mẫu thông báo',
+    `su_kien` VARCHAR(50) NOT NULL COMMENT 'Loại sự kiện kích hoạt',
+    `kenh_sms_active` TINYINT NOT NULL DEFAULT 1 COMMENT '1: Bật SMS, 0: Tắt',
+    `kenh_zalo_active` TINYINT NOT NULL DEFAULT 1 COMMENT '1: Bật Zalo ZNS, 0: Tắt',
+    `kenh_email_active` TINYINT NOT NULL DEFAULT 1 COMMENT '1: Bật Email, 0: Tắt',
+    `kenh_inapp_active` TINYINT NOT NULL DEFAULT 1 COMMENT '1: Bật In-app, 0: Tắt',
+    `tieu_de_mau` VARCHAR(255) NOT NULL COMMENT 'Tiêu đề thông báo',
+    `noi_dung_sms` TEXT NOT NULL COMMENT 'Mẫu nội dung SMS Brandname UBND TP HP',
+    `noi_dung_zalo` TEXT NOT NULL COMMENT 'Mẫu nội dung tin Zalo ZNS',
+    `noi_dung_email` TEXT NULL COMMENT 'Mẫu nội dung Email thông báo',
+    `noi_dung_inapp` TEXT NOT NULL COMMENT 'Mẫu nội dung thông báo trên hệ thống',
+    `danh_sach_bien` VARCHAR(255) NOT NULL DEFAULT '{ma_ho_so},{ten_tthc},{ho_ten},{trang_thai},{ngay_hen_tra},{link_tra_cuu}',
+    `trang_thai` TINYINT NOT NULL DEFAULT 1,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Cấu hình mẫu tin nhắn thông báo đa kênh';
+
 
 -- ----------------------------------------------------------------------------
 -- 7. NHÓM BẢNG: AN TOÀN THÔNG TIN, KIỂM TOÁN WORM & QUẢN TRỊ HỆ THỐNG (§3.3, §4.3)
@@ -817,6 +839,23 @@ CREATE TABLE `phien_ban_cau_hinh` (
     `thoi_gian_thay_doi` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_pbch_user` FOREIGN KEY (`nguoi_thay_doi_id`) REFERENCES `nguoi_dung` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Lịch sử kiểm soát phiên bản thay đổi cấu hình';
+
+-- 7.10 Nhật ký điểm thi đua đơn vị (§2.2, §4.3)
+DROP TABLE IF EXISTS `diem_thi_dua_don_vi`;
+CREATE TABLE `diem_thi_dua_don_vi` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `don_vi_id` INT NOT NULL COMMENT 'Đơn vị hành chính',
+    `ho_so_id` INT NULL COMMENT 'Hồ sơ liên quan',
+    `loai_su_kien` VARCHAR(50) NOT NULL COMMENT 'QUA_HAN_SLA, XIN_LOI_DUNG_HAN, HOAN_THANH_TRUOC_HAN...',
+    `diem_thay_doi` DECIMAL(4,1) NOT NULL COMMENT 'Điểm cộng hoặc trừ (+1.0, -1.0)',
+    `ly_do` VARCHAR(255) NOT NULL,
+    `thoi_gian` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_dtd_donvi` (`don_vi_id`),
+    INDEX `idx_dtd_hoso` (`ho_so_id`),
+    CONSTRAINT `fk_dtd_donvi` FOREIGN KEY (`don_vi_id`) REFERENCES `don_vi` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_dtd_hoso` FOREIGN KEY (`ho_so_id`) REFERENCES `ho_so` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Nhật ký ghi nhận điểm thi đua giải quyết TTHC của các đơn vị';
+
 
 
 -- ----------------------------------------------------------------------------

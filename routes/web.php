@@ -12,6 +12,8 @@ use App\Controllers\Admin\MotCuaController;
 use App\Controllers\Admin\PheDuyetController;
 use App\Controllers\Admin\ProfileController;
 use App\Controllers\Admin\RoleController;
+use App\Controllers\Admin\SlaController;
+use App\Controllers\Admin\ThongBaoController;
 use App\Controllers\Admin\ThuLyController;
 use App\Controllers\Admin\TthcController;
 use App\Controllers\Admin\UiKitController;
@@ -280,5 +282,20 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::post('/van-thu/so-van-ban/tao', [VanThuController::class, 'taoSoVanBan'])->name('admin.van_thu.tao_so_van_ban');
         Router::get('/van-thu/cong-van', [VanThuController::class, 'congVan'])->name('admin.van_thu.cong_van');
         Router::get('/van-thu/cong-van/xuat-csv/{id:\d+}', [VanThuController::class, 'xuatCsv'])->name('admin.van_thu.xuat_csv');
+
+        // ====================================================================
+        // PH06: Giám sát SLA & Văn bản xin lỗi Mẫu 04 (TT 01/2018/TT-VPCP)
+        // ====================================================================
+        Router::get('/sla/danh-sach-qua-han', [SlaController::class, 'danhSachQuaHan'])->name('admin.sla.qua_han');
+        Router::get('/sla/van-ban-xin-loi/{id:\d+}', [SlaController::class, 'formMau04'])->name('admin.sla.form_mau_04');
+        Router::post('/sla/ky-so-mau-04/{id:\d+}', [SlaController::class, 'kySoMau04'])->name('admin.sla.ky_so_mau_04');
+        Router::get('/sla/in-mau-04/{id:\d+}', [SlaController::class, 'inMau04'])->name('admin.sla.in_mau_04');
+
+        // ====================================================================
+        // PH07: Quản trị Mẫu Thông báo Đa kênh & Hộp thư mô phỏng
+        // ====================================================================
+        Router::get('/he-thong/mau-thong-bao', [ThongBaoController::class, 'mauThongBao'])->name('admin.mau_thong_bao');
+        Router::post('/he-thong/mau-thong-bao/{id:\d+}', [ThongBaoController::class, 'updateMauThongBao'])->name('admin.mau_thong_bao.update');
+        Router::get('/he-thong/hop-thu-mo-phong', [ThongBaoController::class, 'hopThuMoPhong'])->name('admin.hop_thu_mo_phong');
     });
 });

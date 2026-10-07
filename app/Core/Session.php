@@ -18,7 +18,7 @@ class Session
      */
     public static function start(): void
     {
-        if (self::$started || session_status() === PHP_SESSION_ACTIVE) {
+        if (self::$started || session_status() === PHP_SESSION_ACTIVE || headers_sent() || php_sapi_name() === 'cli') {
             self::$started = true;
             return;
         }

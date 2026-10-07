@@ -229,3 +229,41 @@ if (!function_exists('current_don_vi')) {
     }
 }
 
+if (!function_exists('render_sla_badge')) {
+    /**
+     * Render HTML Badge SLA và đếm ngược thời gian còn lại hiển thị nhất quán (§2.2 & Rule mục 11)
+     *
+     * @param string|null $mau 'XANH' | 'VANG' | 'DO'
+     * @param string|null $ngayHenTra Hạn trả kết quả
+     * @param float|null $soGioDaDung Số giờ đã dùng
+     * @param float|null $tongGio Tổng thời hạn
+     * @return string HTML Badge
+     */
+    function render_sla_badge(?string $mau, ?string $ngayHenTra = null, ?float $soGioDaDung = null, ?float $tongGio = null): string
+    {
+        $mau = strtoupper($mau ?? 'XANH');
+        $now = time();
+        $henTraTs = !empty($ngayHenTra) ? strtotime($ngayHenTra) : 0;
+        
+        $conLaiText = '';
+        if ($henTraTs > 0) {
+            $diffHours = round(($henTraTs - $now) / 3600, 1);
+            if ($diffHours < 0) {
+                $conLaiText = 'Quá hạn ' . abs($diffHours) . 'h';
+            } else {
+                $conLaiText = 'Còn ' . $diffHours . 'h';
+            }
+        } elseif ($tongGio !== null && $soGioDaDung !== null) {
+            $conLaiHours = max(0, round($tongGio - $soGioDaDung, 1));
+            $conLaiText = 'Còn ' . $conLaiHours . 'h';
+        }
+
+        return match ($mau) {
+            'DO' => '<span class="badge bg-danger text-white px-2 py-1" title="' . e($conLaiText) . '"><i class="bi bi-clock-history me-1"></i>ĐỎ' . ($conLaiText ? ' · ' . e($conLaiText) : '') . '</span>',
+            'VANG' => '<span class="badge bg-warning text-dark px-2 py-1" title="' . e($conLaiText) . '"><i class="bi bi-hourglass-split me-1"></i>VÀNG' . ($conLaiText ? ' · ' . e($conLaiText) : '') . '</span>',
+            default => '<span class="badge bg-success text-white px-2 py-1" title="' . e($conLaiText) . '"><i class="bi bi-check-circle me-1"></i>XANH' . ($conLaiText ? ' · ' . e($conLaiText) : '') . '</span>',
+        };
+    }
+}
+
+

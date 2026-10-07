@@ -86,7 +86,28 @@
                 </a>
             </li>
 
+            <li class="sidebar-heading">Tiến độ & SLA (PH06, PH07)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/sla/danh-sach-qua-han')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/sla/')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">⏱️</span>
+                    <span class="sidebar-text">Quá hạn & Mẫu số 04</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/mau-thong-bao')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/mau-thong-bao')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">💬</span>
+                    <span class="sidebar-text">Mẫu thông báo đa kênh</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/hop-thu-mo-phong')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/hop-thu-mo-phong')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📱</span>
+                    <span class="sidebar-text">Hộp thư mô phỏng</span>
+                </a>
+            </li>
+
             <li class="sidebar-heading">Văn thư số (PH05)</li>
+
             <li class="sidebar-item">
                 <a href="<?= e(url('/admin/van-thu')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/van-thu') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'so-van-ban') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'cong-van')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">🔏</span>

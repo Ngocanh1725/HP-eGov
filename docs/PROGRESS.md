@@ -22,7 +22,7 @@
 | **8** | **Bộ phận Một cửa (Cán bộ - PH02)** | Bàn làm việc 4 thẻ KPI, quét QR CCCD chip C06, số hóa 4 bước NĐ 107/2021, ký số OpenSSL, SlaEngine trừ ngày nghỉ, in Giấy hẹn Mẫu 01, Mẫu 02 bổ sung, Mẫu 03 từ chối, trả kết quả VNPost, Sổ theo dõi Mẫu 06 A4 ngang | **Hoàn thành** | 2026-10-07 | PH02, `MotCuaController.php`, `SlaEngine.php`, `SoHoaService.php`, `ChuKySoService.php`, `tests/Unit/MotCuaTest.php` |
 | **9** | **Workflow Engine · Thụ lý & Liên thông** | Phân công, thẩm định, đối soát LGSP/C06/Đất đai/Đăng kiểm, liên thông ngang/dọc đa cơ quan, Hộp việc 6 tabs, SLA ĐỎ khóa chuyển bước, đối soát SHA-256 | **Hoàn thành** | 2026-10-07 | PH03, `WorkflowEngine.php`, `ThuLyController.php`, `tests/Integration/LienThongLogisticsTest.php` |
 | **10** | **Phê duyệt, Ký số & Văn thư số** | OpenSSL SHA256withRSA, SmartCA mock, ký duyệt LD_PHONG, ký phát hành & batch signing LD_CO_QUAN, hủy logic DA_HUY, Văn thư số cấp số không trùng, đóng dấu số tổ chức, đẩy kho công dân | **Hoàn thành** | 2026-10-07 | PH04, PH05, `ChuKySoService.php`, `VanThuService.php`, `PheDuyetController.php`, `VanThuController.php`, `PheDuyetKySoVanThuTest.php` |
-| **11** | SLA Engine & Thông báo đa kênh | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi, SMS/Zalo mock | *Chưa làm* | - | Kế hoạch: PH06, PH07, `cron/sla_scan.php`, `cron/notify_dispatch.php` |
+| **11** | **SLA Engine & Thông báo đa kênh** | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi ký số OpenSSL, Outbox queue SMS/Zalo/Email, Quản trị mẫu tin & Hộp thư mô phỏng | **Hoàn thành** | 2026-10-07 | PH06, PH07, `SlaEngine.php`, `cron/sla_scan.php`, `cron/notify_dispatch.php`, `ThongBaoService.php`, `SlaController.php`, `ThongBaoController.php`, `SlaEngineTest.php`, `SlaNotificationIntegrationTest.php` |
 | **12** | Dashboard chỉ đạo điều hành & Báo cáo | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện, báo cáo TT 01 | *Chưa làm* | - | Kế hoạch: PH08, `app/Controllers/Admin/DashboardController.php` |
 | **13** | Quản trị & Vận hành hệ thống | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | *Chưa làm* | - | Kế hoạch: PH12, PH13, PH15, `docs/05_QUY_CHE_VAN_HANH.md` |
 | **14** | Chuyển đổi dữ liệu ETL, Tích hợp & API | ETL 4 bước (checksum SHA-256), REST API /api/v1, Webhook LGSP, tài liệu API | *Chưa làm* | - | Kế hoạch: PH14, `EtlService.php`, `docs/06_API.md` |
@@ -503,7 +503,64 @@
   - `app/Views/portal/kiem_tra_chu_ky.php`, `app/Views/partials/sidebar.php`, `app/Views/partials/header.php`, `routes/web.php`, `app/Core/View.php`
   - `app/cli.php`, `tests/Integration/PheDuyetKySoVanThuTest.php`, `tests/Integration/test_phe_duyet_van_thu_http.php`, `tests/Unit/MotCuaTest.php`
 - **Kế hoạch cho Phiên 11:**
-  - Thực hiện **Phiên 11/16 – SLA Engine & Thông báo đa kênh (PH06, PH07)**: Hoàn thiện `SlaEngine` với unit test đầy đủ các trường hợp biên; xây dựng script định kỳ `cron/sla_scan.php` (tích hợp Windows Task Scheduler); quy trình phát hành tự động Văn bản xin lỗi Mẫu số 04 theo NĐ 61/2018/NĐ-CP; hàng đợi thông báo Outbox `hang_doi_thong_bao`, worker `cron/notify_dispatch.php`, quản lý mẫu thông báo đa kênh (In-app, SMS Brandname, Zalo ZNS).
+  - Hoàn thành theo đúng kế hoạch.
+
+### PHIÊN 11: SLA ENGINE & THÔNG BÁO ĐA KÊNH (PH06, PH07)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Động cơ SLA thời gian thực (`SlaEngine`):**
+     - Cấu hình khung giờ làm việc hành chính chuẩn: Sáng 07:30 – 11:30 (4 giờ), Chiều 13:30 – 17:30 (4 giờ) = 8 giờ làm việc/ngày (loại trừ 2 giờ nghỉ trưa và ngoài giờ làm việc).
+     - Chuẩn hóa thời điểm bắt đầu (`normalizeThoiDiemBatDau`): Nếu tiếp nhận ngoài giờ (sau 17:30, ví dụ 17:45) hoặc vào ngày nghỉ, tự động chuyển sang 07:30 sáng ngày làm việc kế tiếp.
+     - Loại trừ triệt để Thứ 7, Chủ Nhật và toàn bộ ngày nghỉ lễ, nghỉ bù theo Bộ luật Lao động 2019 nạp từ bảng `dm_ngay_nghi`.
+     - Tính ngày hẹn trả (`calculateNgayHenTra`): Hỗ trợ tính theo ngày làm việc hoặc tịnh tiến chi tiết theo số giờ làm việc (`addWorkingHours`).
+     - Tính chính xác số giờ làm việc thực tế (`calculateWorkingHoursBetween`): Khấu trừ thời gian tạm dừng chờ bổ sung giấy tờ (`so_gio_tam_dung`) giúp $t$ (giờ đã dùng) phản ánh trung thực trách nhiệm của cơ quan giải quyết.
+     - Đánh giá màu sắc SLA (`evaluateSla`) theo đúng công thức **Rule mục 11 & §2.2 Báo cáo Kiến trúc**:
+       + **XANH**: $t \le 75\% \cdot T$ VÀ thời gian còn lại $> 24$ giờ làm việc.
+       + **VÀNG**: $75\% \cdot T < t \le T$ HOẶC thời gian còn lại $\le 24$ giờ làm việc (khi $t \le T$).
+       + **ĐỎ**: $t > T$ (hồ sơ đã trễ hạn).
+     - Đánh giá SLA từng bước quy trình (`evaluateStepSla`).
+  2. **Cron Job quét SLA tự động định kỳ (`cron/sla_scan.php`):**
+     - Kịch bản chạy nền mỗi 15 phút quét toàn bộ hồ sơ đang thụ lý, cập nhật `sla_mau`, `thoi_gian_da_dung_gio`.
+     - Chuyển màu **VÀNG**: Tự động phát thông báo in-app đẩy tới Chuyên viên thụ lý và Lãnh đạo phòng chuyên môn.
+     - Chuyển màu **ĐỎ**: Khóa chức năng chuyển bước thông thường trong `WorkflowEngine`, phát cảnh báo khẩn cấp tới Lãnh đạo cơ quan, đồng thời tự động ghi nhận trừ 1 điểm thi đua của đơn vị vào bảng `diem_thi_dua_don_vi` phục vụ IOC Dashboard.
+     - Lệnh thiết lập Windows Task Scheduler:
+       ```cmd
+       schtasks /create /tn "HPeGov_SlaScan" /tr "C:\xampp\php\php.exe C:\xampp\htdocs\HP-eGov\cron\sla_scan.php" /sc minute /mo 15 /ru "SYSTEM"
+       ```
+  3. **Văn bản xin lỗi Mẫu số 04 (Thông tư số 01/2018/TT-VPCP & NĐ 61/2018/NĐ-CP):**
+     - Xây dựng màn hình quản lý hồ sơ quá hạn (`/admin/sla/danh-sach-qua-han`) với thống kê 3 thẻ KPI.
+     - Màn hình soạn thảo Mẫu 04 (`/admin/sla/van-ban-xin-loi/{id}`): Gợi ý lý do quá hạn chuẩn hóa, tự động tính ngày hẹn trả mới theo SLA, xem trước bản in A4 trực quan.
+     - Quy trình ký số điện tử: Chỉ `LD_CO_QUAN` có thẩm quyền ký số (chặn `SYSADMIN` theo Rule #6, #12), xác thực mã PIN SmartCA, ký số OpenSSL lưu vào `van_ban_xin_loi`, tự động mở khóa hoàn tất hồ sơ trong `WorkflowEngine`, đồng thời phát thông báo xin lỗi công dân qua đa kênh.
+     - Bản in chuẩn thể thức A4 hành chính (`/admin/sla/in-mau-04/{id}`): Quốc hiệu, Tiêu ngữ, số văn bản, lý do quá hạn, ngày hẹn mới, khối con dấu chữ ký số điện tử của Lãnh đạo cơ quan và hỗ trợ `@media print`.
+  4. **Hạ tầng Thông báo đa kênh Outbox Pattern (PH07):**
+     - Bảng `hang_doi_thong_bao` (Outbox queue): Hàng đợi tin nhắn SMS Brandname "UBND TP HP", Zalo ZNS (kèm mã QR và link tra cứu) và Email.
+     - Bảng `mau_thong_bao`: Quản lý 5 mẫu tin chuẩn hóa (`TIEP_NHAN`, `DANG_THU_LY`, `YEU_CAU_BO_SUNG`, `DA_CO_KET_QUA`, `XIN_LOI_QUA_HAN`) cho phép cấu hình bật/tắt từng kênh và nội suy động các biến `{ma_ho_so}`, `{ten_tthc}`, `{ho_ten}`, `{trang_thai}`, `{ngay_hen_tra}`, `{link_tra_cuu}`, `{so_van_ban}`.
+     - `ThongBaoService::guiSuKien`: Tự động nạp mẫu và đẩy tin vào Outbox queue khi xảy ra sự kiện đổi trạng thái hồ sơ.
+     - Worker `cron/notify_dispatch.php`: Quét hàng đợi Outbox gửi qua `SmsZnsNotificationMock`, hỗ trợ retry backoff, ghi nhật ký vào `nhat_ky_tich_hop` và `webhook_log`.
+       ```cmd
+       schtasks /create /tn "HPeGov_NotifyDispatch" /tr "C:\xampp\php\php.exe C:\xampp\htdocs\HP-eGov\cron\notify_dispatch.php" /sc minute /mo 1 /ru "SYSTEM"
+       ```
+     - Giao diện **Quản trị Mẫu Thông báo** (`/admin/he-thong/mau-thong-bao`) và **Hộp thư Mô phỏng Gateway** (`/admin/he-thong/hop-thu-mo-phong`) hiển thị mockup Smartphone nhận tin SMS Brandname & Zalo ZNS sinh động.
+  5. **Hiển thị Badge SLA & Đếm ngược thời gian nhất quán:**
+     - Bổ sung helper `render_sla_badge($mau, $ngayHenTra, $soGioDaDung, $tongGio)` hiển thị nhãn màu Xanh/Vàng/Đỏ kèm đếm ngược số giờ còn lại hoặc số giờ quá hạn trên toàn bộ hệ thống.
+  6. **Kiểm thử tự động & Tích hợp:**
+     - **Unit Test (`tests/Unit/SlaEngineTest.php`):** Đạt 6/6 test cases (Tính hạn qua cuối tuần, qua nghỉ Tết 7 ngày, tiếp nhận 17:45 ngoài giờ, khấu trừ tạm dừng bổ sung, ngưỡng biên Xanh/Vàng/Đỏ 75% và 24h, SLA từng bước).
+     - **Integration Test (`tests/Integration/SlaNotificationIntegrationTest.php`):** Đạt 4/4 test cases (SLA Đỏ khóa chuyển bước và mở khóa sau khi ký Mẫu 04, Outbox queue và dispatch qua mock gateway, nội suy biến mẫu tin nhắn, ghi điểm phạt thi đua).
+     - **HTTP Web Test (`tests/Integration/test_sla_notification_http.php`):** Đạt 3/3 kịch bản kiểm tra bảo mật các tuyến đường SLA và Thông báo (HTTP 302).
+     - **Toàn bộ Test Suite:** **65/65 tests passed 100%** (`tests/run.php`).
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/SlaEngine.php`, `app/Services/ThongBaoService.php`, `app/Services/VanThuService.php`
+  - `app/Integrations/Mock/SmsZnsNotificationMock.php`
+  - `cron/sla_scan.php`, `cron/notify_dispatch.php`
+  - `app/Controllers/Admin/SlaController.php`, `app/Controllers/Admin/ThongBaoController.php`
+  - `app/Views/admin/sla/danh_sach_qua_han.php`, `form_mau_04.php`, `in_mau_04.php`
+  - `app/Views/admin/he_thong/mau_thong_bao.php`, `hop_thu_mo_phong.php`
+  - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Core/Session.php`, `app/Helpers/functions.php`
+  - `database/migrations/2026_10_07_000002_create_mau_thong_bao_and_thi_dua_tables.sql`, `database/schema.sql`
+  - `tests/Unit/SlaEngineTest.php`, `tests/Integration/SlaNotificationIntegrationTest.php`, `tests/Integration/test_sla_notification_http.php`
+- **Kế hoạch cho Phiên 12:**
+  - Thực hiện **Phiên 12/16 – Dashboard chỉ đạo điều hành & Báo cáo (PH08)**: Dashboard theo vai trò (Chuyên viên, LĐ Phòng, LĐ Cơ quan), Trung tâm điều hành thông minh IOC Hải Phòng (4 thẻ KPI chỉ tiêu báo cáo: đúng hạn $\ge 98\%$, toàn trình $\ge 80\%$, số hóa $100\%$, hài lòng $\ge 92\%$), Heatmap tiếp nhận theo giờ $\times$ ngày, Bản đồ số SVG 15 quận/huyện Hải Phòng, bảng xếp hạng thi đua Sở/Quận, phát hiện điểm thắt cổ chai, chế độ trình chiếu TV Wall; xuất báo cáo động biểu mẫu 01-04 theo Thông tư 01/2018/TT-VPCP (PDF, Excel có công thức).
+
 
 
 
