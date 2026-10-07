@@ -1,0 +1,21 @@
+# Environment
+.env
+
+# Storage files (giữ lại .gitkeep)
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+/storage/keys/*
+!/storage/keys/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+
+# OS / Editor temporary files
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.log
