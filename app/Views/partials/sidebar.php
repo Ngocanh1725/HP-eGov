@@ -106,6 +106,38 @@
                 </a>
             </li>
 
+            <li class="sidebar-heading">Báo cáo & Thống kê (PH08)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/bao-cao')) ?>" class="sidebar-link <?= (($_SERVER['REQUEST_URI'] ?? '') === '/HP-eGov/admin/bao-cao') ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-text">Trung tâm Báo cáo</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/bao-cao/thong-tu-01')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/bao-cao/thong-tu-01')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📑</span>
+                    <span class="sidebar-text">Mẫu TT 01/2018</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/bao-cao/so-hoa')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/bao-cao/so-hoa')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">💾</span>
+                    <span class="sidebar-text">Số hóa NĐ 107</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/bao-cao/qua-han')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/bao-cao/qua-han')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">⏱️</span>
+                    <span class="sidebar-text">Quá hạn & Mẫu 04</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/bao-cao/hai-long')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/bao-cao/hai-long')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">⭐</span>
+                    <span class="sidebar-text">Hài lòng SIPAS</span>
+                </a>
+            </li>
+
             <li class="sidebar-heading">Văn thư số (PH05)</li>
 
             <li class="sidebar-item">

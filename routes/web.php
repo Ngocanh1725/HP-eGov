@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Controllers\Admin\AuthController as AdminAuthController;
+use App\Controllers\Admin\BaoCaoController;
 use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\ConfigController;
+use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\DonViController;
 use App\Controllers\Admin\DvhcController;
 use App\Controllers\Admin\EformController;
@@ -113,10 +115,11 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
 
     // Tuyến đường yêu cầu đã đăng nhập Cán bộ
     Router::group(['middleware' => ['auth:can_bo']], function () {
-        // Bàn làm việc & UI Kit
-        Router::get('/dashboard', function () {
-            return Response::redirect(url('/admin/ui-kit'));
-        })->name('admin.dashboard');
+        // PH08: Bàn làm việc & Trung tâm IOC Hải Phòng
+        Router::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Router::get('/ioc', [DashboardController::class, 'ioc'])->name('admin.ioc');
+        Router::get('/api/ioc-stats', [DashboardController::class, 'apiIocStats'])->name('admin.api.ioc_stats');
+        Router::get('/api/ioc-district/{id:\d+}', [DashboardController::class, 'apiDistrictDetail'])->name('admin.api.ioc_district');
 
         Router::get('/ui-kit', [UiKitController::class, 'index'])->name('admin.ui_kit');
 
@@ -297,5 +300,16 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::get('/he-thong/mau-thong-bao', [ThongBaoController::class, 'mauThongBao'])->name('admin.mau_thong_bao');
         Router::post('/he-thong/mau-thong-bao/{id:\d+}', [ThongBaoController::class, 'updateMauThongBao'])->name('admin.mau_thong_bao.update');
         Router::get('/he-thong/hop-thu-mo-phong', [ThongBaoController::class, 'hopThuMoPhong'])->name('admin.hop_thu_mo_phong');
+
+        // ====================================================================
+        // PH08: Phân hệ Báo cáo Thống kê Hành chính Động (TT 01/2018, NĐ 107/2021)
+        // ====================================================================
+        Router::get('/bao-cao', [BaoCaoController::class, 'index'])->name('admin.bao_cao.index');
+        Router::get('/bao-cao/thong-tu-01', [BaoCaoController::class, 'thongTu01'])->name('admin.bao_cao.thong_tu_01');
+        Router::get('/bao-cao/so-hoa', [BaoCaoController::class, 'soHoa'])->name('admin.bao_cao.so_hoa');
+        Router::get('/bao-cao/qua-han', [BaoCaoController::class, 'quaHan'])->name('admin.bao_cao.qua_han');
+        Router::get('/bao-cao/hai-long', [BaoCaoController::class, 'haiLong'])->name('admin.bao_cao.hai_long');
+        Router::get('/bao-cao/truc-tuyen', [BaoCaoController::class, 'trucTuyen'])->name('admin.bao_cao.truc_tuyen');
+        Router::get('/bao-cao/lien-thong', [BaoCaoController::class, 'lienThong'])->name('admin.bao_cao.lien_thong');
     });
 });

@@ -581,6 +581,21 @@ class AuthService
     }
 
     /**
+     * Lấy danh sách mã vai trò của một người dùng cụ thể
+     *
+     * @param int|null $userId
+     * @return array<string>
+     */
+    public static function userRoles(?int $userId = null): array
+    {
+        if ($userId === null) {
+            return self::roles();
+        }
+        $data = self::loadRolesAndPermissions($userId);
+        return $data['roles'] ?? [];
+    }
+
+    /**
      * Kiểm tra người dùng có một hoặc nhiều vai trò cụ thể
      *
      * @param string|array $role

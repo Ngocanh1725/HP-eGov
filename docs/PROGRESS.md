@@ -23,7 +23,7 @@
 | **9** | **Workflow Engine · Thụ lý & Liên thông** | Phân công, thẩm định, đối soát LGSP/C06/Đất đai/Đăng kiểm, liên thông ngang/dọc đa cơ quan, Hộp việc 6 tabs, SLA ĐỎ khóa chuyển bước, đối soát SHA-256 | **Hoàn thành** | 2026-10-07 | PH03, `WorkflowEngine.php`, `ThuLyController.php`, `tests/Integration/LienThongLogisticsTest.php` |
 | **10** | **Phê duyệt, Ký số & Văn thư số** | OpenSSL SHA256withRSA, SmartCA mock, ký duyệt LD_PHONG, ký phát hành & batch signing LD_CO_QUAN, hủy logic DA_HUY, Văn thư số cấp số không trùng, đóng dấu số tổ chức, đẩy kho công dân | **Hoàn thành** | 2026-10-07 | PH04, PH05, `ChuKySoService.php`, `VanThuService.php`, `PheDuyetController.php`, `VanThuController.php`, `PheDuyetKySoVanThuTest.php` |
 | **11** | **SLA Engine & Thông báo đa kênh** | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi ký số OpenSSL, Outbox queue SMS/Zalo/Email, Quản trị mẫu tin & Hộp thư mô phỏng | **Hoàn thành** | 2026-10-07 | PH06, PH07, `SlaEngine.php`, `cron/sla_scan.php`, `cron/notify_dispatch.php`, `ThongBaoService.php`, `SlaController.php`, `ThongBaoController.php`, `SlaEngineTest.php`, `SlaNotificationIntegrationTest.php` |
-| **12** | Dashboard chỉ đạo điều hành & Báo cáo | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện, báo cáo TT 01 | *Chưa làm* | - | Kế hoạch: PH08, `app/Controllers/Admin/DashboardController.php` |
+| **12** | **Dashboard chỉ đạo điều hành & Báo cáo** | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện SVG, xếp hạng thi đua, bottleneck, báo cáo TT 01, NĐ 107, SIPAS, xuất CSV & in A4 | **Hoàn thành** | 2026-10-07 | PH08, `ReportingService.php`, `DashboardController.php`, `BaoCaoController.php`, `tests/Unit/ReportingServiceTest.php` |
 | **13** | Quản trị & Vận hành hệ thống | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | *Chưa làm* | - | Kế hoạch: PH12, PH13, PH15, `docs/05_QUY_CHE_VAN_HANH.md` |
 | **14** | Chuyển đổi dữ liệu ETL, Tích hợp & API | ETL 4 bước (checksum SHA-256), REST API /api/v1, Webhook LGSP, tài liệu API | *Chưa làm* | - | Kế hoạch: PH14, `EtlService.php`, `docs/06_API.md` |
 | **15** | Kiểm thử toàn diện & QA/QC | Unit, Integration liên thông, Security OWASP Top 10, k6/JMeter tải, UAT | *Chưa làm* | - | Kế hoạch: `tests/*`, `docs/07_KE_HOACH_KIEM_THU.md` |
@@ -559,7 +559,53 @@
   - `database/migrations/2026_10_07_000002_create_mau_thong_bao_and_thi_dua_tables.sql`, `database/schema.sql`
   - `tests/Unit/SlaEngineTest.php`, `tests/Integration/SlaNotificationIntegrationTest.php`, `tests/Integration/test_sla_notification_http.php`
 - **Kế hoạch cho Phiên 12:**
-  - Thực hiện **Phiên 12/16 – Dashboard chỉ đạo điều hành & Báo cáo (PH08)**: Dashboard theo vai trò (Chuyên viên, LĐ Phòng, LĐ Cơ quan), Trung tâm điều hành thông minh IOC Hải Phòng (4 thẻ KPI chỉ tiêu báo cáo: đúng hạn $\ge 98\%$, toàn trình $\ge 80\%$, số hóa $100\%$, hài lòng $\ge 92\%$), Heatmap tiếp nhận theo giờ $\times$ ngày, Bản đồ số SVG 15 quận/huyện Hải Phòng, bảng xếp hạng thi đua Sở/Quận, phát hiện điểm thắt cổ chai, chế độ trình chiếu TV Wall; xuất báo cáo động biểu mẫu 01-04 theo Thông tư 01/2018/TT-VPCP (PDF, Excel có công thức).
+  - Hoàn thành theo đúng kế hoạch.
+
+### PHIÊN 12: DASHBOARD CHỈ ĐẠO ĐIỀU HÀNH & BÁO CÁO (PH08 – §4.3 IOC)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Dashboard theo vai trò người dùng (Data Scope phân cấp & Chart.js cục bộ):**
+     - **Chuyên viên thụ lý (`/admin/dashboard` vai trò `CHUYEN_VIEN`):** 4 thẻ KPI việc cá nhân (Đang thụ lý, Sắp quá hạn Vàng, Quá hạn Đỏ, Đã hoàn thành), bảng ưu tiên xử lý xếp theo hạn SLA và mức độ khẩn cấp, biểu đồ Năng suất giải quyết 7 ngày qua sử dụng `Chart.js` cục bộ (`public/assets/vendor/chartjs/chart.umd.js`).
+     - **Lãnh đạo Phòng (`/admin/dashboard?view=phong` vai trò `LD_PHONG`):** Thống kê hồ sơ toàn phòng, tỷ lệ đúng hạn của phòng, bảng phân bổ công việc theo từng chuyên viên trực thuộc, biểu đồ tròn Doughnut tỷ trọng công việc và danh sách hồ sơ cảnh báo Vàng/Đỏ cần đôn đốc.
+     - **Lãnh đạo Cơ quan (`/admin/dashboard?view=co_quan` vai trò `LD_CO_QUAN` - Giám đốc Sở / Chủ tịch UBND Quận/Huyện):** KPI tổng thể cơ quan (Tiếp nhận, Tỷ lệ trực tuyến, Tỷ lệ đúng hạn, Quá hạn), bảng đối soát tiến độ giữa các phòng ban chuyên môn, xếp hạng chuyên viên xuất sắc, danh sách hồ sơ quá hạn cần ban hành Văn bản xin lỗi Mẫu số 04.
+  2. **Trung tâm Chỉ đạo & Điều hành Thông minh (IOC) Hải Phòng (`/admin/ioc`):**
+     - **4 Thẻ Chỉ tiêu Báo cáo Kiến trúc (§2):**
+       + Tỷ lệ Đúng/trước hạn: $\ge 98\%$ (chỉ báo ĐẠT / CHƯA ĐẠT).
+       + Dịch vụ công Toàn trình: $\ge 80\%$ (chỉ báo ĐẠT / CẦN ĐẨY MẠNH).
+       + Tỷ lệ Số hóa hồ sơ & kết quả: $100\%$ theo NĐ 107/2021/NĐ-CP (chỉ báo ĐẠT / TIẾN ĐỘ TỐT).
+       + Mức độ Hài lòng SIPAS: $\ge 92\%$ theo QĐ 876/QĐ-BNV (chỉ báo ĐẠT / RẤT HÀI LÒNG).
+     - **Bản đồ số Hải Phòng Vector SVG 15 Quận / Huyện:** Tự vẽ vector không gian địa lý tương đối của 15 đơn vị hành chính cấp huyện (Hồng Bàng, Ngô Quyền, Lê Chân, Hải An, Kiến An, Đồ Sơn, Dương Kinh, Thủy Nguyên, An Dương, An Lão, Kiến Thụy, Tiên Lãng, Vĩnh Bảo, Cát Hải, Bạch Long Vĩ). Tự động tô màu gradient theo tỷ lệ đúng hạn (Xanh $\ge 98\%$, Vàng $95\% - 98\%$, Đỏ $< 95\%$). Tương tác hover/click mở Modal chi tiết đơn vị và danh sách hồ sơ trễ hạn.
+     - **Heatmap Tiếp nhận Hồ sơ Giờ × Ngày:** Ma trận 24 giờ $\times$ 7 ngày trong tuần trực quan với cường độ màu xanh ngọc gradient và tooltip tương tác.
+     - **Bảng Xếp hạng Thi đua Sở / Quận:** Tab chuyển đổi giữa Khối 15 Quận/Huyện và Khối các Sở/Ban/Ngành; tính toán dựa trên Điểm thi đua chuẩn 100 trừ điểm phạt `diem_thi_dua_don_vi` từ SLA Scan, Tỷ lệ đúng hạn và Số hồ sơ quá hạn.
+     - **Phát hiện Điểm thắt cổ chai (Bottleneck Detector):** Tự động thống kê số hồ sơ tồn đọng và thời gian xử lý trung bình theo từng bước quy trình (`quy_trinh_buoc`), cảnh báo khâu gây chậm trễ lớn nhất kèm khuyến nghị điều hành.
+     - **Chế độ TV Wall & Tự làm mới:** Hỗ trợ Fullscreen API, thanh đếm ngược tự làm mới 60 giây (`60s, 59s... 0s`) kết hợp API JSON ngầm `/admin/api/ioc-stats` không làm nhấp nháy màn hình.
+  3. **Phân hệ Báo cáo Thống kê Hành chính Động (`/admin/bao-cao`):**
+     - **Báo cáo Mẫu biểu 01 TT 01/2018/TT-VPCP:** Đầy đủ 15 cột chuẩn hóa (Tồn kỳ trước, Tiếp nhận mới Trực tiếp/Trực tuyến, Tổng nhận, Giải quyết Trước hạn/Đúng hạn/Quá hạn, Tổng giải quyết, Đang xử lý Trong hạn/Quá hạn, Tổng đang xử lý, Tỷ lệ đúng hạn).
+     - **Báo cáo Số hóa NĐ 107/2021/NĐ-CP:** Thống kê tỷ lệ số hóa thành phần đầu vào và kết quả điện tử được đồng bộ vào Kho dữ liệu cá nhân.
+     - **Báo cáo Quá hạn & Mẫu 04:** Danh sách hồ sơ quá hạn, số giờ trễ hạn, trạng thái lập và ký số văn bản xin lỗi Mẫu 04, ngày hẹn mới và lý do quá hạn.
+     - **Báo cáo Hài lòng SIPAS QĐ 876/QĐ-BNV:** 5 nhóm tiêu chí (Tiếp cận, Thủ tục, Công chức, Kết quả, Phản ánh), điểm trung bình và tỷ lệ hài lòng chung.
+     - **Báo cáo Trực tuyến Toàn trình:** Phân loại theo mức độ dịch vụ công.
+     - **Báo cáo Luân chuyển Liên thông:** Thống kê luân chuyển liên cơ quan.
+     - **Xuất CSV UTF-8 BOM:** Header `\xEF\xBB\xBF` mở trực tiếp trên Excel tiếng Việt không lỗi phông.
+     - **Bản in A4 Ngang Chuẩn Thể thức (`in_a4.php`):** Quốc hiệu, Tiêu ngữ, Tên cơ quan, Ngày tháng năm, Bảng số liệu, Người lập biểu và Thủ trưởng cơ quan ký số (`@media print` căn chuẩn trang A4 landscape).
+  4. **Tối ưu Truy vấn & Bộ đệm Cache 5 phút (`storage/cache/ioc_stats.json`):**
+     - Tận dụng hệ thống View CSDL: `v_ho_so_tong_hop`, `v_ty_le_dung_han_don_vi`, `v_ho_so_qua_han`.
+     - Cache kết quả tổng hợp nặng vào `storage/cache/ioc_stats.json` với TTL 300 giây (5 phút), hỗ trợ cờ `?refresh=1`.
+     - Thời gian truy vấn đo đạc thực tế: $0.04$s (trực tiếp) và $< 0.001$s (đọc từ cache), đạt yêu cầu $< 1.0$ giây.
+  5. **Kiểm thử tự động:**
+     - **Unit Test (`tests/Unit/ReportingServiceTest.php`):** Đạt 7/7 test cases (Stats chuyên viên, phòng, cơ quan, IOC 4 chỉ tiêu, 15 quận huyện SVG map, cache TTL và thời gian truy vấn < 1s, Báo cáo TT 01, NĐ 107, SIPAS).
+     - **Integration Test (`tests/Integration/DashboardBaoCaoTest.php`):** Đạt 4/4 test cases (Điều hướng vai trò, IOC screen & API stats, District detail API, Báo cáo & Bản in A4 ngang).
+     - **Toàn bộ Test Suite:** **76/76 tests passed 100%** (`tests/run.php`).
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/ReportingService.php`
+  - `app/Controllers/Admin/DashboardController.php`, `app/Controllers/Admin/BaoCaoController.php`
+  - `app/Views/admin/dashboard/chuyen_vien.php`, `ld_phong.php`, `ld_co_quan.php`, `ioc.php`
+  - `app/Views/admin/bao_cao/index.php`, `thong_tu_01.php`, `so_hoa.php`, `qua_han.php`, `hai_long.php`, `truc_tuyen.php`, `lien_thong.php`, `in_a4.php`
+  - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Services/AuthService.php`
+  - `tests/Unit/ReportingServiceTest.php`, `tests/Integration/DashboardBaoCaoTest.php`
+- **Kế hoạch cho Phiên 13:**
+  - Thực hiện **Phiên 13/16 – Quản trị & Vận hành Hệ thống (PH12, PH13, PH15 – §2.3, §4.3, §4.4, §1.4)**: An toàn thông tin & Tra cứu Audit Trail, Kiểm tra toàn vẹn chuỗi băm WORM, Quản trị sao lưu Full/Differential/Transaction log với `mysqldump` cam kết RPO $\le$ 2h, RTO $\le$ 4h; Trang giám sát sức khỏe hệ thống Health & endpoint Prometheus `/api/v1/health`; Quản lý sự cố BCP/DRP & Static Maintenance Site; Quản lý đào tạo 4 nhóm đối tượng theo chuẩn §1.4; Soạn thảo quy chế vận hành `docs/05_QUY_CHE_VAN_HANH.md`.
+
 
 
 
