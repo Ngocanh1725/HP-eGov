@@ -18,7 +18,7 @@
 | **3** | **Lõi MVC (Core Framework)** | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | **Hoàn thành** | 2026-10-07 | `app/Core/*`, `tests/run.php`, `public/index.php` |
 | **5** | **Xác thực & Phân quyền RBAC đa cấp** | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | **Hoàn thành** | 2026-10-07 | PH11, `AuthService.php`, `AuditService.php`, `VNeID Sandbox` |
 | **6** | **Danh mục dùng chung (MDM) & Quy trình** | MDM ĐVHC 3 cấp, cây tổ chức QCVN 102, TTHC quốc gia mock diff, E-Form designer JSON, BPMN-lite quy trình | **Hoàn thành** | 2026-10-07 | PH09, PH10, `WorkflowEngine.php`, `MdmService.php`, `tests/Unit/WorkflowValidationTest.php` |
-| **7** | Cổng Dịch vụ công (Công dân) | Wizard nộp hồ sơ, Auto-fill VNeID, Kho số hóa công dân, tra cứu QR, SIPAS | *Chưa làm* | - | Kế hoạch: PH01, `app/Controllers/Portal/*` |
+| **7** | **Cổng Dịch vụ công (Công dân)** | Wizard 4 bước, Auto-fill VNeID, Kho số hóa công dân, QCVN 102 chống trùng, QR webcam, SIPAS | **Hoàn thành** | 2026-10-07 | PH01, `NopHoSoController.php`, `MaHoSoGenerator.php`, `FileUploadSecurityService.php`, `PortalDvcTest.php` |
 | **8** | Bộ phận Một cửa | Bàn tiếp nhận, quét QR CCCD, số hóa NĐ 107/2021, OCR mock, in Giấy hẹn A4 | *Chưa làm* | - | Kế hoạch: PH02, `app/Controllers/Admin/MotCuaController.php` |
 | **9** | Workflow Engine · Thụ lý & Liên thông | Phân công, thẩm định, đối soát LGSP/C06, liên thông ngang/dọc đa cơ quan | *Chưa làm* | - | Kế hoạch: PH03, `WorkflowEngine.php`, `LienThongLogisticsTest.php` |
 | **10** | Phê duyệt, Ký số & Văn thư số | OpenSSL demo, SmartCA mock, ký số hàng loạt, cấp số sổ phát hành, đóng dấu số | *Chưa làm* | - | Kế hoạch: PH04, PH05, `ChuKySoService.php`, `VanThuService.php` |
@@ -289,4 +289,54 @@
   - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Core/Request.php`, `app/Core/Router.php`
   - `tests/Unit/WorkflowValidationTest.php`
 - **Kế hoạch cho Phiên 7:**
-  - Thực hiện **Phiên 7/16 – Cổng Dịch vụ công trực tuyến (Công dân - PH01)**: Wizard nộp hồ sơ đa bước, tích hợp nạp dữ liệu từ E-Form Designer (JSON) và Auto-fill VNeID C06, Kho dữ liệu số hóa của công dân, tra cứu hồ sơ đa kênh (Mã hồ sơ, quét mã QR), khảo sát mức độ hài lòng SIPAS (chấm điểm 5 sao theo QĐ 876/QĐ-BNV).
+  - Đã thực hiện và hoàn thành xuất sắc toàn diện các mục tiêu của Phiên 7.
+
+### PHIÊN 7: CỔNG DỊCH VỤ CÔNG TRỰC TUYẾN (CÔNG DÂN - PH01)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Trang chủ Cổng DVC Hải Phòng (`/`):**
+     - Banner nhận diện thành phố Cảng biển thông minh, ô tìm kiếm TTHC tức thời.
+     - 4 Thẻ KPI công khai: Tổng hồ sơ tiếp nhận năm (182.450), Tỷ lệ giải quyết đúng/trước hạn (98.6%), Mức độ hài lòng người dân SIPAS (96.5%), Tỷ lệ DVC Toàn trình (84.2%).
+     - Danh sách 6 DVC phổ biến nhất và Tin tức / Thông báo chỉ đạo hành chính.
+  2. **Danh mục & Chi tiết TTHC (`/dvc/thu-tuc`, `/dvc/thu-tuc/{ma}`):**
+     - Bộ lọc đa chiều: Lĩnh vực, Cấp thực hiện (Tỉnh, Huyện, Xã), Cơ quan thụ lý, Mức độ DVC (Một phần / Toàn trình).
+     - Trang chi tiết TTHC: Trình tự thực hiện, Thành phần hồ sơ yêu cầu, Thời hạn giải quyết, Phí/lệ phí, Căn cứ pháp lý, Tải biểu mẫu và nút điều hướng "Nộp hồ sơ trực tuyến".
+  3. **Nộp hồ sơ trực tuyến - Wizard 4 bước chuẩn hóa (`/dvc/nop-ho-so/{tthc_id}`):**
+     - Yêu cầu xác thực tài khoản qua **VNeID OIDC Sandbox** hoặc Doanh nghiệp (MST).
+     - **Bước 1 (Chọn cơ quan tiếp nhận):** Chọn đơn vị tiếp nhận trong cây tổ chức ĐVHC 3 cấp TP. Hải Phòng.
+     - **Bước 2 (E-Form động):** Render linh hoạt từ schema JSON (hỗ trợ cả chuẩn `id`/`name`, `vneid_field`). Tự động Auto-fill thông tin từ VNeID (`ho_ten`, `so_cccd`, `ngay_sinh`, `gioi_tinh`, `dia_chi_thuong_tru`) và **khóa cứng không cho sửa** (Readonly badge) để bảo đảm tính pháp lý với C06 Bộ Công an.
+     - **Bước 3 (Đính kèm hồ sơ):** Hỗ trợ 2 phương thức:
+       + (a) Chọn giấy tờ đã số hóa từ **Kho dữ liệu điện tử cá nhân** theo Nghị định 107/2021/NĐ-CP (tái sử dụng, không cần nộp lại).
+       + (b) Tải tệp mới: Kiểm tra bảo mật chặt chẽ qua `FileUploadSecurityService` (chặn `.php`, `.exe`, webshell, MIME type sniffing bằng `finfo`, giới hạn 10MB, sinh UUIDv4, lưu trữ an toàn ngoài web root, băm mã SHA-256).
+     - **Bước 4 (Xem lại, Nhận kết quả & Ký số):** Chọn hình thức nhận kết quả (Điện tử có ký số cơ quan / Trực tiếp tại Một cửa / Chuyển phát bưu chính công ích VNPost). Ký số E-Form (`EformSignerMock` mô phỏng RSA-SHA256 kèm thông tin chứng thư số SmartCA).
+     - **Cấp mã hồ sơ:** `MaHoSoGenerator` sinh mã chuẩn QCVN 102:2016/BTTTT dạng `{DonVi}-{yyMMdd}-{Ma4}-{STT6}` (ví dụ: `000.05.00.H21.MC-261007-0042-000010`). Cơ chế chống trùng lặp đồng thời (Concurrency-safe) qua Transaction và khóa hàng `SELECT ... FOR UPDATE` trên bảng `bo_dem_ma_ho_so`.
+     - **Thông báo đa kênh:** Phát sự kiện mock SMS Brandname "UBND TP HP" và Zalo ZNS kèm ghi `nhat_ky_tich_hop` và bảng `thong_bao`.
+  4. **Hồ sơ của tôi (`/cong-dan/ho-so`, `/cong-dan/ho-so/{ma_ho_so}`):**
+     - Danh sách hồ sơ cá nhân, phân nhóm trạng thái (Chờ tiếp nhận, Đang xử lý, Chờ bổ sung, Hoàn thành...).
+     - Giao diện chi tiết: Stepper 5 bước theo Thông tư 01/2018/TT-VPCP, Timeline luân chuyển công khai (tự động ẩn các ý kiến/thẩm định nội bộ của cán bộ công chức), tải giấy tờ đính kèm.
+     - Bảo mật chống IDOR: Ngăn chặn tuyệt đối công dân A xem trộm hồ sơ của công dân B (`403 Forbidden`).
+  5. **Bổ sung hồ sơ (`/cong-dan/ho-so/{ma_ho_so}/bo-sung`):**
+     - Khi trạng thái là `CHO_BO_SUNG`: Hiển thị nội dung công chức yêu cầu bổ sung, chỉ cho phép sửa/tải lại các tệp được chỉ định, nộp lại đưa trạng thái về `DANG_XU_LY`.
+  6. **Kho dữ liệu điện tử cá nhân / tổ chức (`/cong-dan/kho-du-lieu`):**
+     - Danh mục giấy tờ đã số hóa, trạng thái hiệu lực, mã SHA-256 đối soát toàn vẹn.
+  7. **Khảo sát hài lòng SIPAS (`/cong-dan/ho-so/{ma_ho_so}/danh-gia-sipas`):**
+     - Đánh giá chuẩn 5 tiêu chí theo Quyết định 876/QĐ-BNV (Tiếp cận dịch vụ, Thủ tục hành chính, Tinh thần công chức, Kết quả dịch vụ, Tiếp nhận phản ánh) kèm thang điểm 1-5 sao. Giới hạn 1 lần đánh giá duy nhất cho mỗi hồ sơ hoàn thành.
+  8. **Tra cứu công khai (`/tra-cuu`):**
+     - Tra cứu theo mã hồ sơ hoặc quét QR trực tiếp qua webcam (`html5-qrcode`).
+     - Không yêu cầu đăng nhập, chỉ trả về thông tin tối thiểu đảm bảo an toàn danh tính, có Rate Limiting (10 lượt/phút) và Captcha bảo vệ.
+  9. **Kiểm thử tự động & Bằng chứng thực tế:**
+     - Kiểm thử đơn vị (`tests/Unit/PortalDvcTest.php`): 5 test cases chuyên sâu (IDOR 403, Chặn upload mã độc, Sinh mã đồng thời 20 request không trùng lặp, Ký số mock SHA-256, SMS/ZNS notification log).
+     - Kiểm thử E2E HTTP (`tests/E2E/portal_flow_test.php`): Đạt 10/10 bước luồng nộp hồ sơ thực tế.
+     - **Browser Subagent:** Thực thi trọn vẹn kịch bản nộp trực tuyến trên trình duyệt (VNeID SSO -> Wizard 4 bước -> Cấp mã QCVN 102 -> Stepper 5 bước -> Tra cứu công khai). Video ghi lại quá trình: `portal_dvc_submission_1791349260177.webp`.
+     - Tổng số test hệ thống: **39/39 tests passed 100%**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/MaHoSoGenerator.php`, `FileUploadSecurityService.php`
+  - `app/Integrations/Mock/EformSignerMock.php`, `SmsZnsNotificationMock.php`
+  - `app/Controllers/Portal/HomeController.php`, `DvcController.php`, `NopHoSoController.php`, `HoSoCaNhanController.php`, `TraCuuController.php`, `NotificationPortalController.php`, `HelpController.php`
+  - `app/Views/portal/home.php`, `dvc/index.php`, `dvc/detail.php`, `nop_ho_so/wizard.php`, `nop_ho_so/success.php`, `ho_so/index.php`, `ho_so/detail.php`, `ho_so/bo_sung.php`, `ho_so/kho_du_lieu.php`, `ho_so/sipas.php`, `tra_cuu/index.php`, `thong_bao/index.php`, `tro_giup/index.php`
+  - `database/migrations/2026_10_07_000001_create_khao_sat_sipas_table.sql`, `database/schema.sql`
+  - `routes/web.php`, `app/Core/Request.php`
+  - `tests/Unit/PortalDvcTest.php`, `tests/E2E/portal_flow_test.php`
+- **Kế hoạch cho Phiên 8:**
+  - Thực hiện **Phiên 8/16 – Phân hệ Một cửa điện tử (Cán bộ - PH02)**: Bàn tiếp nhận Một cửa trực tiếp và trực tuyến, tra cứu/quét QR CCCD, số hóa hồ sơ theo Nghị định 107/2021/NĐ-CP, kiểm tra thành phần hồ sơ, OCR mock bóc tách thông tin, in Giấy tiếp nhận & Hẹn trả kết quả (Mẫu số 01 Thông tư 01/2018/TT-VPCP chuẩn A4), in Phiếu từ chối / Phiếu yêu cầu bổ sung (Mẫu số 02, 03).
+

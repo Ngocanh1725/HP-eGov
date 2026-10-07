@@ -16,7 +16,13 @@ use App\Controllers\Admin\UserController;
 use App\Controllers\Admin\WorkflowController;
 use App\Controllers\CaptchaController;
 use App\Controllers\Portal\AuthController as PortalAuthController;
+use App\Controllers\Portal\DvcController;
+use App\Controllers\Portal\HelpController;
 use App\Controllers\Portal\HomeController;
+use App\Controllers\Portal\HoSoCaNhanController;
+use App\Controllers\Portal\NopHoSoController;
+use App\Controllers\Portal\NotificationPortalController;
+use App\Controllers\Portal\TraCuuController;
 use App\Core\Response;
 use App\Core\Router;
 
@@ -26,6 +32,18 @@ use App\Core\Router;
 Router::get('/', [HomeController::class, 'index'])->name('home');
 Router::get('/ping', [HomeController::class, 'ping'])->name('ping');
 Router::get('/captcha', [CaptchaController::class, 'render'])->name('captcha');
+
+// Tuyến đường công khai DVC, Tra cứu & Trợ giúp
+Router::get('/dvc/thu-tuc', [DvcController::class, 'index'])->name('portal.dvc');
+Router::get('/thu-tuc-hanh-chinh', [DvcController::class, 'index']);
+Router::get('/dvc/thu-tuc/{ma}', [DvcController::class, 'detail'])->name('portal.dvc.detail');
+
+Router::get('/tra-cuu', [TraCuuController::class, 'index'])->name('portal.tra_cuu');
+Router::get('/tro-giup', [HelpController::class, 'index'])->name('portal.help');
+Router::get('/ho-tro', [HelpController::class, 'index']);
+Router::get('/nop-ho-so', function () {
+    return Response::redirect(url('/dvc/thu-tuc'));
+});
 
 // ============================================================================
 // 2. CỔNG XÁC THỰC CÔNG DÂN & DOANH NGHIỆP (PORTAL AUTH)
@@ -40,11 +58,30 @@ Router::get('/auth/vneid/sandbox', [PortalAuthController::class, 'vneidSandbox']
 Router::post('/auth/vneid/consent', [PortalAuthController::class, 'vneidConsent'])->name('portal.vneid_consent');
 Router::get('/auth/vneid/callback', [PortalAuthController::class, 'vneidCallback'])->name('portal.vneid_callback');
 
-// Khu vực DVC Công dân đã đăng nhập
-Router::group(['prefix' => '/cong-dan', 'middleware' => ['security_headers', 'auth:cong_dan']], function () {
-    Router::get('/ho-so', function () {
-        return Response::html("<h1>Hồ sơ của tôi</h1><p>Chào mừng công dân " . e(auth('cong_dan')['ho_ten'] ?? '') . " đã đăng nhập qua VNeID.</p><p><a href='" . url('/dang-xuat') . "'>Đăng xuất</a></p>");
-    })->name('portal.ho_so');
+// ============================================================================
+// 3. KHU VỰC DỊCH VỤ CÔNG & HỒ SƠ CỦA CÔNG DÂN (YÊU CẦU ĐĂNG NHẬP)
+// ============================================================================
+Router::group(['middleware' => ['security_headers', 'auth:cong_dan']], function () {
+    // Wizard 4 bước nộp hồ sơ trực tuyến
+    Router::get('/dvc/nop-ho-so/{tthc_id:\d+}', [NopHoSoController::class, 'wizard'])->name('portal.nop_ho_so');
+    Router::post('/dvc/nop-ho-so/{tthc_id:\d+}', [NopHoSoController::class, 'submit'])->name('portal.nop_ho_so.submit');
+    Router::get('/dvc/nop-ho-so/thanh-cong/{ma_ho_so}', [NopHoSoController::class, 'success'])->name('portal.nop_ho_so.success');
+
+    // Quản lý hồ sơ công dân & Kho dữ liệu
+    Router::get('/cong-dan/ho-so', [HoSoCaNhanController::class, 'index'])->name('portal.ho_so');
+    Router::get('/cong-dan/ho-so/{ma_ho_so}', [HoSoCaNhanController::class, 'show'])->name('portal.ho_so.detail');
+    Router::get('/cong-dan/ho-so/{ma_ho_so}/bo-sung', [HoSoCaNhanController::class, 'boSungForm'])->name('portal.ho_so.bo_sung');
+    Router::post('/cong-dan/ho-so/{ma_ho_so}/bo-sung', [HoSoCaNhanController::class, 'submitBoSung'])->name('portal.ho_so.bo_sung.submit');
+    
+    // Kho dữ liệu điện tử cá nhân / doanh nghiệp
+    Router::get('/cong-dan/kho-du-lieu', [HoSoCaNhanController::class, 'khoDuLieu'])->name('portal.kho_du_lieu');
+
+    // Khảo sát hài lòng SIPAS 5 tiêu chí
+    Router::get('/cong-dan/ho-so/{ma_ho_so}/danh-gia-sipas', [HoSoCaNhanController::class, 'sipasForm'])->name('portal.sipas');
+    Router::post('/cong-dan/ho-so/{ma_ho_so}/danh-gia-sipas', [HoSoCaNhanController::class, 'submitSipas'])->name('portal.sipas.submit');
+
+    // Trung tâm thông báo
+    Router::get('/cong-dan/thong-bao', [NotificationPortalController::class, 'index'])->name('portal.notifications');
 });
 
 // ============================================================================

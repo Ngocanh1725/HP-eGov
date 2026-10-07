@@ -262,6 +262,16 @@ class Request
      * @param string $key
      * @return array<string, mixed>|null
      */
+    /**
+     * Lấy danh sách toàn bộ các file được gửi lên
+     *
+     * @return array<string, mixed>
+     */
+    public function files(): array
+    {
+        return $this->files;
+    }
+
     public function file(string $key): ?array
     {
         return $this->files[$key] ?? null;
