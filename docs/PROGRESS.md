@@ -14,7 +14,7 @@
 |:---:|---|---|:---:|:---:|---|
 | **0** | **Thiết lập bối cảnh & Rule workspace** | Rule workspace, kiểm tra môi trường, khung thư mục, Git, tài liệu tiến độ | **Hoàn thành** | 2026-10-07 | `.agents/rules/hp-egov.md`, `PROGRESS.md`, `00_TRUY_VET_BAO_CAO.md` |
 | **1** | **Phân tích & Thiết kế hệ thống** | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | **Hoàn thành** | 2026-10-07 | `docs/01_PHAN_TICH_THIET_KE.md` |
-| **2** | Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | *Chưa làm* | - | Kế hoạch: `database/schema.sql`, `seed.sql` |
+| **2** | **Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu** | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | **Hoàn thành** | 2026-10-07 | `database/schema.sql`, `database/seed.sql`, `docs/02_THIET_KE_CSDL.md` |
 | **3** | Lõi MVC (Core Framework) | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | *Chưa làm* | - | Kế hoạch: `app/Core/*`, `tests/run.php` |
 | **4** | Design System & Layout giao diện | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | *Chưa làm* | - | Kế hoạch: `public/assets/*`, `app/Views/layouts/*` |
 | **5** | Xác thực & Phân quyền RBAC đa cấp | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | *Chưa làm* | - | Kế hoạch: PH11, `app/Services/AuthService.php`, `AuditService.php` |
@@ -70,6 +70,38 @@
   7. Lập Sitemap chi tiết cho Cổng DVC và Khu vực Quản trị theo vai trò; thiết lập Ma trận phân quyền chi tiết (Matrix of Permissions).
 - **Tệp tin đã tạo:**
   - `docs/01_PHAN_TICH_THIET_KE.md`
-- **Kế hoạch cho Phiên 2:**
-  - Chạy **Phiên 2/16 – Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu Hải Phòng** để tạo `database/schema.sql` (DDL InnoDB, Trigger cấm xóa, Views báo cáo), `database/seed.sql` (15 quận/huyện, sở ngành, 12 TTHC mẫu, 200 hồ sơ thử nghiệm) và `docs/02_THIET_KE_CSDL.md`.
-  - *Lưu ý quan trọng trước Phiên 2:* Người dùng cần khởi động MySQL trên XAMPP Control Panel (cổng 3306).
+- **Kế hoạch cho phiên tiếp theo:** Chuyển sang Phiên 2 thực hiện cơ sở dữ liệu.
+
+### PHIÊN 2: CƠ SỞ DỮ LIỆU (phpMyAdmin) & DỮ LIỆU MẪU HẢI PHÒNG
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. Xây dựng mã nguồn CSDL `database/schema.sql`:
+     - Khởi tạo Database `hp_egov` (charset `utf8mb4`, collate `utf8mb4_unicode_ci`).
+     - Thiết kế đầy đủ 50 bảng chuẩn hóa InnoDB thuộc 9 nhóm nghiệp vụ: Tổ chức & Định danh, Danh mục dùng chung, Quy trình & E-Form, Hồ sơ Một cửa, Ký số & Văn thư, Thông báo & Tích hợp, Quản trị hệ thống & Bảo mật (BCP/DRP/Audit chain), ETL chuyển đổi dữ liệu, Đào tạo bồi dưỡng.
+     - 100% các bảng và cột đều có chú thích `COMMENT` bằng tiếng Việt nghiệp vụ chuẩn hóa.
+     - Thiết lập hệ thống khóa ngoại (`FOREIGN KEY`) toàn vẹn và chỉ mục đánh số/tra cứu tối ưu (`INDEX`, `FULLTEXT`).
+  2. Xây dựng 6 Trigger bảo mật và toàn vẹn dữ liệu bất biến:
+     - Chặn triệt để thao tác xóa vật lý `DELETE` trên các bảng nghiệp vụ cốt lõi: `ho_so`, `ho_so_tai_lieu`, `ho_so_luan_chuyen`, `chu_ky_so` (kích hoạt lỗi `SQLSTATE '45000'`).
+     - Chặn triệt để thao tác `UPDATE` và `DELETE` trên bảng `nhat_ky_kiem_toan` (đảm bảo nguyên tắc WORM Append-Only chống chối bỏ).
+     - Đã kiểm thử kích hoạt trigger bằng lệnh `DELETE FROM ho_so` trong MySQL: trigger bắt giữ thành công và trả về lỗi `ERROR 1644 (45000): [HP-eGov Bảo mật] Nghiêm cấm xóa vật lý hồ sơ hành chính! Phải sử dụng cơ chế hủy logic`.
+  3. Xây dựng 3 Views báo cáo phục vụ điều hành IOC và thống kê theo Thông tư 01/2018/TT-VPCP:
+     - `v_ho_so_tong_hop`: Quy đổi 9 trạng thái nghiệp vụ về 6 nhóm chỉ tiêu chuẩn hóa quốc gia.
+     - `v_ty_le_dung_han_don_vi`: Tính toán tự động tỷ lệ giải quyết đúng/trước hạn của từng cơ quan, phòng ban (đối chiếu KPI $\ge 98\%$).
+     - `v_ho_so_qua_han`: Thống kê danh sách hồ sơ quá hạn SLA, cảnh báo kích hoạt Văn bản xin lỗi Mẫu 04.
+  4. Xây dựng kịch bản nạp dữ liệu thực tế Hải Phòng `database/seed.sql`:
+     - Nạp ĐVHC chuẩn: TP Hải Phòng (31) và đầy đủ 15 quận/huyện/thành phố theo báo cáo (Hồng Bàng 303, Ngô Quyền 304, Lê Chân 305, Hải An 306, Kiến An 307, Đồ Sơn 308, Dương Kinh 309, TP. Thủy Nguyên 311, Q. An Dương 312, H. An Lão 313, Kiến Thụy 314, Tiên Lãng 315, Vĩnh Bảo 316, Cát Hải 317, Bạch Long Vĩ 318), kèm các phường/xã mẫu với cơ chế hiệu lực theo thời gian (`hieu_luc_tu`, `hieu_luc_den`).
+     - Nạp cây đơn vị hành chính: UBND Thành phố, Văn phòng UBND TP, các Sở (KH&ĐT, XD, TN&MT, GTVT, TT&TT), 15 UBND quận/huyện, các Bộ phận Một cửa và phòng ban trực thuộc; mã định danh chuẩn QCVN 102 (`000.04.15.H21...`).
+     - Nạp 7 vai trò chuẩn, 34 mã quyền chi tiết, ma trận phân quyền vai trò - quyền theo §4.1.
+     - Tạo danh sách tài khoản cán bộ mẫu với mật khẩu Bcrypt an toàn (`Hpegov@2026`).
+     - Nạp 12 thủ tục hành chính mẫu trọng điểm (khai sinh, chứng thực, GPXD, biến động đất đai, cấp đổi GPLX, phù hiệu xe tải cảng biển, liên thông dự án logistics cảng biển...) kèm thành phần hồ sơ, cấu trúc E-Form JSON và các bước quy trình chuẩn xác.
+     - Nạp danh mục ngày nghỉ lễ/Tết theo Bộ luật Lao động 2019 và tham số cấu hình hệ thống (giờ làm việc, tỷ lệ cảnh báo SLA 75%, rate limit...).
+     - Nạp 205 hồ sơ hành chính mẫu phân bổ trên 15 đơn vị trong 6 tháng, đủ 9 trạng thái và 3 màu cảnh báo SLA (Xanh, Vàng, Đỏ), kèm luân chuyển, ý kiến phối hợp liên thông, nhật ký kiểm toán băm chuỗi SHA-256, khảo sát SIPAS và văn bản xin lỗi Mẫu số 04.
+  5. Xây dựng tài liệu thiết kế CSDL toàn diện `docs/02_THIET_KE_CSDL.md` gồm sơ đồ ERD Mermaid chi tiết, từ điển dữ liệu 50 bảng, cơ chế triggers và views báo cáo.
+  6. Import thử nghiệm thành công 100% vào MariaDB/MySQL 10.4 qua CLI (tương thích hoàn toàn với phpMyAdmin).
+- **Tệp tin đã tạo:**
+  - `database/schema.sql`
+  - `database/seed.sql`
+  - `docs/02_THIET_KE_CSDL.md`
+- **Kế hoạch cho Phiên 3:**
+  - Chạy **Phiên 3/16 – Lõi MVC (Core Framework)**: Xây dựng nền tảng PHP 8.2 thuần chuẩn MVC, Router, Database Master/Replica PDO, Request, Response, Controller, Model, View, Csrf, Session, Validator, Logger, ErrorHandler và test runner tự viết `tests/run.php`.
+
