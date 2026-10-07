@@ -19,7 +19,7 @@
 | **5** | **Xác thực & Phân quyền RBAC đa cấp** | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | **Hoàn thành** | 2026-10-07 | PH11, `AuthService.php`, `AuditService.php`, `VNeID Sandbox` |
 | **6** | **Danh mục dùng chung (MDM) & Quy trình** | MDM ĐVHC 3 cấp, cây tổ chức QCVN 102, TTHC quốc gia mock diff, E-Form designer JSON, BPMN-lite quy trình | **Hoàn thành** | 2026-10-07 | PH09, PH10, `WorkflowEngine.php`, `MdmService.php`, `tests/Unit/WorkflowValidationTest.php` |
 | **7** | **Cổng Dịch vụ công (Công dân)** | Wizard 4 bước, Auto-fill VNeID, Kho số hóa công dân, QCVN 102 chống trùng, QR webcam, SIPAS | **Hoàn thành** | 2026-10-07 | PH01, `NopHoSoController.php`, `MaHoSoGenerator.php`, `FileUploadSecurityService.php`, `PortalDvcTest.php` |
-| **8** | Bộ phận Một cửa | Bàn tiếp nhận, quét QR CCCD, số hóa NĐ 107/2021, OCR mock, in Giấy hẹn A4 | *Chưa làm* | - | Kế hoạch: PH02, `app/Controllers/Admin/MotCuaController.php` |
+| **8** | **Bộ phận Một cửa (Cán bộ - PH02)** | Bàn làm việc 4 thẻ KPI, quét QR CCCD chip C06, số hóa 4 bước NĐ 107/2021, ký số OpenSSL, SlaEngine trừ ngày nghỉ, in Giấy hẹn Mẫu 01, Mẫu 02 bổ sung, Mẫu 03 từ chối, trả kết quả VNPost, Sổ theo dõi Mẫu 06 A4 ngang | **Hoàn thành** | 2026-10-07 | PH02, `MotCuaController.php`, `SlaEngine.php`, `SoHoaService.php`, `ChuKySoService.php`, `tests/Unit/MotCuaTest.php` |
 | **9** | Workflow Engine · Thụ lý & Liên thông | Phân công, thẩm định, đối soát LGSP/C06, liên thông ngang/dọc đa cơ quan | *Chưa làm* | - | Kế hoạch: PH03, `WorkflowEngine.php`, `LienThongLogisticsTest.php` |
 | **10** | Phê duyệt, Ký số & Văn thư số | OpenSSL demo, SmartCA mock, ký số hàng loạt, cấp số sổ phát hành, đóng dấu số | *Chưa làm* | - | Kế hoạch: PH04, PH05, `ChuKySoService.php`, `VanThuService.php` |
 | **11** | SLA Engine & Thông báo đa kênh | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi, SMS/Zalo mock | *Chưa làm* | - | Kế hoạch: PH06, PH07, `cron/sla_scan.php`, `cron/notify_dispatch.php` |
@@ -339,4 +339,61 @@
   - `tests/Unit/PortalDvcTest.php`, `tests/E2E/portal_flow_test.php`
 - **Kế hoạch cho Phiên 8:**
   - Thực hiện **Phiên 8/16 – Phân hệ Một cửa điện tử (Cán bộ - PH02)**: Bàn tiếp nhận Một cửa trực tiếp và trực tuyến, tra cứu/quét QR CCCD, số hóa hồ sơ theo Nghị định 107/2021/NĐ-CP, kiểm tra thành phần hồ sơ, OCR mock bóc tách thông tin, in Giấy tiếp nhận & Hẹn trả kết quả (Mẫu số 01 Thông tư 01/2018/TT-VPCP chuẩn A4), in Phiếu từ chối / Phiếu yêu cầu bổ sung (Mẫu số 02, 03).
+
+### PHIÊN 8: BỘ PHẬN MỘT CỬA (CÁN BỘ - PH02)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Bàn làm việc Một cửa (`/admin/mot-cua`):**
+     - Thiết kế giao diện Dashboard theo chuẩn Design System Hải Phòng: 4 thẻ KPI đếm thời gian thực lọc theo đơn vị công tác của cán bộ (`Chờ tiếp nhận trực tuyến`, `Tiếp nhận hôm nay`, `Chờ trả kết quả`, `Sắp quá hạn / Quá hạn`).
+     - Danh sách việc cần làm (To-do list): Ưu tiên hồ sơ nộp trực tuyến mới gửi đến và hồ sơ đã có kết quả sẵn sàng trả cho công dân.
+  2. **Tiếp nhận trực tiếp & Quét QR CCCD gắn chip (`/admin/mot-cua/tiep-nhan`):**
+     - Tích hợp 2 phương thức nhập dữ liệu công dân: (a) Quét trực tiếp bằng Camera qua thư viện `html5-qrcode`; (b) Dán chuỗi QR chuẩn C06 Bộ Công an (`CCCD|CMND|Họ tên|ddMMyyyy|Giới tính|Địa chỉ|ddMMyyyy`) qua máy quét barcode hoặc bàn phím.
+     - Bộ phân tích Regex chuẩn bóc tách tự động 7 trường thông tin (Số CCCD, CMND cũ, Họ tên, Ngày sinh, Giới tính, Thường trú, Ngày cấp) $\rightarrow$ Tự điền Form tiếp nhận trong **< 3 giây** (giảm thời gian tạo hồ sơ từ 12 phút xuống < 4 phút đúng mục tiêu báo cáo).
+     - Tích hợp Trục liên thông LGSP & C06 (`LgspGatewayMock::verifyCitizen`): Đối soát tức thời với CSDL Quốc gia về Dân cư, trả về mã đối soát `LGSP-C06-...` và lưu `nhat_ky_tich_hop`.
+     - Tự động nạp động danh mục thành phần hồ sơ giấy tờ tương ứng với TTHC được chọn.
+  3. **Quy trình Số hóa đầu vào 4 bước theo Nghị định 107/2021/NĐ-CP (`SoHoaService`):**
+     - **Bước 1 (Kiểm tra pháp lý):** Cán bộ Một cửa đối chiếu bản chính / bản sao có chứng thực, tích chọn xác nhận bắt buộc.
+     - **Bước 2 (Tải file quét):** Tiếp nhận file scan PDF $\ge 300\text{ DPI}$, kiểm tra bảo mật mã độc qua `FileUploadSecurityService`, tính mã băm SHA-256.
+     - **Bước 3 (OCR mô phỏng):** Tự động bóc tách thông tin định danh (CCCD, Họ tên, Ngày sinh, Thửa đất, Biển số...) với độ tin cậy $\ge 95\%$.
+     - **Bước 4 (Ký số số hóa & Đồng bộ):** Cán bộ Một cửa ký số điện tử OpenSSL bằng chứng thư cá nhân (`ChuKySoService`), lưu vào bảng `chu_ky_so` (`loai_chu_ky = 'SO_HOA'`) và tự động đồng bộ vào `kho_du_lieu_cong_dan` với nguồn cấp `'SO_HOA_MOT_CUA'`, thời hạn hiệu lực 5 năm.
+  4. **Cấp mã QCVN 102 & Động cơ SLA loại trừ ngày nghỉ (`SlaEngine`):**
+     - Sinh mã định danh chống trùng qua `MaHoSoGenerator::generate()` với cơ chế khóa hàng Transaction.
+     - Tính ngày hẹn trả kết quả qua `SlaEngine::calculateNgayHenTra()`: Loại trừ Thứ Bảy, Chủ Nhật và toàn bộ ngày nghỉ lễ theo `dm_ngay_nghi`, chốt giờ hẹn lúc 17:00:00.
+     - Tự động chuyển bước quy trình qua `WorkflowEngine::transition()`, ghi nhật ký `ho_so_luan_chuyen` và `AuditService` chuỗi băm WORM.
+  5. **In ấn Giấy tiếp nhận và hẹn trả kết quả (Mẫu số 01 TT 01/2018/TT-VPCP):**
+     - Giao diện in ấn A4 chuẩn quy thức văn bản hành chính Việt Nam (`/admin/mot-cua/in-giay-hen/{id}`).
+     - Mã QR Code SVG nhúng trực tiếp phục vụ công dân tra cứu nhanh tiến độ giải quyết trên điện thoại di động.
+  6. **Xử lý hồ sơ trực tuyến chờ tiếp nhận (`/admin/mot-cua/truc-tuyen`):**
+     - Màn hình thẩm tra hồ sơ trực tuyến: Xem thông tin người nộp, E-Form nộp, chứng thư số công dân, giấy tờ đính kèm.
+     - 3 hành động nghiệp vụ theo quy định:
+       + (a) **Tiếp nhận:** Cấp mã QCVN 102, tính ngày hẹn trả SLA, chuyển `MOI_TIEP_NHAN` sang phòng ban thụ lý.
+       + (b) **Yêu cầu bổ sung (Mẫu số 02 TT 01/2018):** Nêu rõ nội dung thiếu sót, tuân thủ nguyên tắc **CHỈ ĐƯỢC YÊU CẦU BỔ SUNG 01 LẦN DUY NHẤT** theo khoản 2 Điều 17 NĐ 61/2018/NĐ-CP $\rightarrow$ Chuyển `CHO_BO_SUNG`, in Phiếu yêu cầu bổ sung Mẫu 02 A4, gửi SMS/Zalo.
+       + (c) **Từ chối tiếp nhận (Mẫu số 03 TT 01/2018):** Bắt buộc nêu căn cứ pháp lý lý do từ chối $\rightarrow$ Chuyển `TU_CHOI`, in Phiếu từ chối Mẫu 03 A4, thông báo công dân.
+  7. **Quản lý Trả kết quả TTHC & Bưu chính VNPost (`/admin/mot-cua/tra-ket-qua`):**
+     - Danh sách hồ sơ trạng thái `HOAN_THANH` chờ bàn giao.
+     - Hai hình thức bàn giao:
+       + **Trực tiếp tại Một cửa:** Xác nhận thông tin người nhận (Họ tên, CCCD, SĐT, giấy ủy quyền), lưu người nhận và thời điểm trả.
+       + **Chuyển phát bưu chính:** Tích hợp `BuuChinhGatewayMock::createShipment`, sinh mã vận đơn bưu chính công ích chuẩn `HP{yyMMdd}{6_so}VN`, ghi nhật ký tích hợp.
+     - **Cảnh báo trễ hạn:** Nếu hồ sơ hoàn thành sau hạn cam kết, hệ thống cảnh báo đỏ và bắt buộc xuất kèm **Mẫu số 04 - Giấy xin lỗi và hẹn lại ngày trả kết quả**.
+     - **Đề xuất hủy hồ sơ:** Nhập căn cứ pháp lý và biên bản giải trình, chuyển trạng thái `CHO_DUYET_HUY` chờ Lãnh đạo cơ quan phê duyệt (Phiên 10).
+  8. **Sổ theo dõi hồ sơ TTHC (Mẫu số 06 TT 01/2018/TT-VPCP):**
+     - Đường dẫn: `/admin/mot-cua/so-theo-doi`.
+     - Bộ lọc đa tiêu chí: Từ ngày, Đến ngày, Thủ tục hành chính, Trạng thái hồ sơ.
+     - Bảng 11 cột chuẩn hóa theo Thông tư 01/2018/TT-VPCP.
+     - Hỗ trợ xuất file CSV định dạng UTF-8 có BOM (tương thích mở trực tiếp trên Microsoft Excel không bị lỗi font tiếng Việt).
+     - Định dạng in ấn chuẩn A4 ngang Landscape (`@media print`).
+  9. **Kiểm thử tự động & Tích hợp:**
+     - **Unit Test (`tests/Unit/MotCuaTest.php`):** 7/7 test cases đạt: Sinh mã QCVN 102 chống trùng, C06 qua LGSP, tính hạn SLA loại trừ cuối tuần/nghỉ lễ, đánh giá màu SLA (XANH/VANG/DO), quy trình số hóa NĐ 107/2021 & ký số OpenSSL, VNPost sinh mã vận đơn, State machine chuyển tiếp quy trình.
+     - **Tích hợp HTTP (`tests/Integration/test_motcua_http.php`):** Đạt 8/8 kịch bản truy cập HTTP thực tế trên máy chủ Apache local.
+     - **Toàn bộ Test Suite:** **46/46 tests passed 100%**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/SlaEngine.php`, `app/Services/SoHoaService.php`, `app/Services/ChuKySoService.php`
+  - `app/Integrations/Mock/LgspGatewayMock.php`, `app/Integrations/Mock/BuuChinhGatewayMock.php`
+  - `app/Controllers/Admin/MotCuaController.php`
+  - `app/Views/admin/mot_cua/dashboard.php`, `tiep_nhan.php`, `in_giay_hen.php`, `ho_so_truc_tuyen.php`, `chi_tiet_truc_tuyen.php`, `tra_ket_qua.php`, `in_phieu_bo_sung.php`, `in_phieu_tu_choi.php`, `so_theo_doi.php`
+  - `app/Views/partials/sidebar.php`, `routes/web.php`
+  - `tests/Unit/MotCuaTest.php`, `tests/Integration/test_motcua_http.php`
+- **Kế hoạch cho Phiên 9:**
+  - Thực hiện **Phiên 9/16 – Phân hệ Thụ lý & Liên thông (PH03)**: Bàn làm việc Chuyên viên thụ lý, phân công thụ lý (thủ công / tự động vòng tròn cân bằng tải), thẩm định hồ sơ, phối hợp liên thông ngang (Sở KH&ĐT ↔ Sở XD ↔ Sở TN&MT) và liên thông dọc (UBND Quận/Huyện ↔ UBND Xã/Phường), biên bản thẩm định, dự thảo kết quả TTHC.
+
 

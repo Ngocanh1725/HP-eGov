@@ -223,4 +223,151 @@ class WorkflowEngine
         $stmt->execute([':id' => $quyTrinhId]);
         return (int)$stmt->fetchColumn();
     }
+
+    /**
+     * Tìm bước tiếp theo của quy trình dựa vào bước hiện tại và hành động
+     *
+     * @param int $quyTrinhId
+     * @param int|null $buocHienTaiId
+     * @param string $hanhDong Mặc định 'CHUYEN'
+     * @return array<string, mixed>|null
+     */
+    public static function getNextStep(int $quyTrinhId, ?int $buocHienTaiId, string $hanhDong = 'CHUYEN'): ?array
+    {
+        $db = Database::connection();
+
+        if (empty($buocHienTaiId)) {
+            // Lấy bước đầu tiên (loại bước TIEP_NHAN hoặc STT nhỏ nhất)
+            $stmt = $db->prepare("SELECT * FROM quy_trinh_buoc WHERE quy_trinh_id = :qid ORDER BY stt_buoc ASC LIMIT 1");
+            $stmt->execute([':qid' => $quyTrinhId]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        }
+
+        // Tìm trong bảng quy_trinh_chuyen_tiep
+        $stmt = $db->prepare("SELECT qb.* 
+                              FROM quy_trinh_chuyen_tiep ct
+                              JOIN quy_trinh_buoc qb ON ct.den_buoc_id = qb.id
+                              WHERE ct.quy_trinh_id = :qid AND ct.tu_buoc_id = :bid
+                              LIMIT 1");
+        $stmt->execute([':qid' => $quyTrinhId, ':bid' => $buocHienTaiId]);
+        $nextStep = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$nextStep) {
+            // Fallback: Tìm bước có stt_buoc lớn hơn kế tiếp
+            $currStmt = $db->prepare("SELECT stt_buoc FROM quy_trinh_buoc WHERE id = :bid");
+            $currStmt->execute([':bid' => $buocHienTaiId]);
+            $currStt = (int)$currStmt->fetchColumn();
+
+            $nextStmt = $db->prepare("SELECT * FROM quy_trinh_buoc WHERE quy_trinh_id = :qid AND stt_buoc > :stt ORDER BY stt_buoc ASC LIMIT 1");
+            $nextStmt->execute([':qid' => $quyTrinhId, ':stt' => $currStt]);
+            $nextStep = $nextStmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        return $nextStep ?: null;
+    }
+
+    /**
+     * Thực hiện chuyển bước quy trình xử lý hồ sơ (State Machine transition)
+     *
+     * @param int $hoSoId ID hồ sơ
+     * @param int $nguoiThucHienId ID cán bộ thực hiện
+     * @param string $hanhDong Hành động ('CHUYEN', 'TRA_LAI', 'TIEP_NHAN', 'YEU_CAU_BO_SUNG'...)
+     * @param string|null $yKien Ý kiến xử lý
+     * @return array{success: bool, message: string, trang_thai_moi: string, buoc_moi_id: ?int}
+     */
+    public static function transition(
+        int $hoSoId,
+        int $nguoiThucHienId,
+        string $hanhDong = 'CHUYEN',
+        ?string $yKien = null
+    ): array {
+        $db = Database::connection();
+
+        $stmtHs = $db->prepare("SELECT hs.*, tt.thoi_han_giai_quyet_ngay 
+                                FROM ho_so hs 
+                                LEFT JOIN thu_tuc_hanh_chinh tt ON hs.tthc_id = tt.id 
+                                WHERE hs.id = :id AND hs.is_deleted = 0");
+        $stmtHs->execute([':id' => $hoSoId]);
+        $hoSo = $stmtHs->fetch(PDO::FETCH_ASSOC);
+
+        if (!$hoSo) {
+            return ['success' => false, 'message' => 'Không tìm thấy hồ sơ.', 'trang_thai_moi' => '', 'buoc_moi_id' => null];
+        }
+
+        $quyTrinhId = (int)($hoSo['quy_trinh_id'] ?? 0);
+        $buocHienTaiId = !empty($hoSo['buoc_hien_tai_id']) ? (int)$hoSo['buoc_hien_tai_id'] : null;
+        $trangThaiTruoc = (string)$hoSo['trang_thai'];
+
+        $nextStep = self::getNextStep($quyTrinhId, $buocHienTaiId, $hanhDong);
+
+        // Quy đổi loại bước sang trạng thái TT 01/2018
+        $trangThaiMoi = 'DANG_XU_LY';
+        if ($nextStep) {
+            $trangThaiMoi = match ($nextStep['loai_buoc']) {
+                'TIEP_NHAN' => 'MOI_TIEP_NHAN',
+                'PHAN_CONG', 'THU_LY', 'LAY_Y_KIEN', 'THAM_TRA' => 'DANG_XU_LY',
+                'PHE_DUYET', 'DONG_DAU' => 'CHO_PHE_DUYET',
+                'TRA_KET_QUA' => 'HOAN_THANH',
+                default => 'DANG_XU_LY'
+            };
+        }
+
+        $donViMoiId = !empty($nextStep['don_vi_xu_ly_id']) ? (int)$nextStep['don_vi_xu_ly_id'] : (int)$hoSo['don_vi_hien_tai_id'];
+        $nextStepId = $nextStep ? (int)$nextStep['id'] : null;
+
+        // Cập nhật hồ sơ
+        $upd = $db->prepare("UPDATE ho_so SET 
+            buoc_hien_tai_id = :bid,
+            don_vi_hien_tai_id = :dvid,
+            trang_thai = :st,
+            updated_at = NOW()
+            WHERE id = :hid");
+        $upd->execute([
+            ':bid' => $nextStepId,
+            ':dvid' => $donViMoiId,
+            ':st' => $trangThaiMoi,
+            ':hid' => $hoSoId,
+        ]);
+
+        // Ghi nhật ký luân chuyển
+        $lc = $db->prepare("INSERT INTO ho_so_luan_chuyen (
+            ho_so_id, tu_buoc_id, den_buoc_id, tu_don_vi_id, den_don_vi_id, 
+            nguoi_chuyen_id, hanh_dong, trang_thai_truoc, trang_thai_sau, 
+            noi_dung_y_kien, thoi_gian_chuyen
+        ) VALUES (
+            :hid, :tubid, :denbid, :tudvid, :dendvid,
+            :ncid, :hd, :ttt, :tts,
+            :yk, NOW()
+        )");
+        $lc->execute([
+            ':hid' => $hoSoId,
+            ':tubid' => $buocHienTaiId,
+            ':denbid' => $nextStepId,
+            ':tudvid' => (int)$hoSo['don_vi_hien_tai_id'],
+            ':dendvid' => $donViMoiId,
+            ':ncid' => $nguoiThucHienId,
+            ':hd' => $hanhDong,
+            ':ttt' => $trangThaiTruoc,
+            ':tts' => $trangThaiMoi,
+            ':yk' => $yKien ?? "Chuyển bước xử lý tiếp theo trong quy trình.",
+        ]);
+
+        // Ghi Audit log
+        AuditService::log(
+            $nguoiThucHienId,
+            'WORKFLOW_CHUYEN_BUOC',
+            'ho_so',
+            $hoSoId,
+            ['trang_thai' => $trangThaiTruoc, 'buoc_id' => $buocHienTaiId],
+            ['trang_thai' => $trangThaiMoi, 'buoc_id' => $nextStepId, 'hanh_dong' => $hanhDong]
+        );
+
+        return [
+            'success' => true,
+            'message' => 'Chuyển bước quy trình thành công.',
+            'trang_thai_moi' => $trangThaiMoi,
+            'buoc_moi_id' => $nextStepId,
+        ];
+    }
 }
+

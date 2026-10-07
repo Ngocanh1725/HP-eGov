@@ -8,6 +8,7 @@ use App\Controllers\Admin\ConfigController;
 use App\Controllers\Admin\DonViController;
 use App\Controllers\Admin\DvhcController;
 use App\Controllers\Admin\EformController;
+use App\Controllers\Admin\MotCuaController;
 use App\Controllers\Admin\ProfileController;
 use App\Controllers\Admin\RoleController;
 use App\Controllers\Admin\TthcController;
@@ -195,5 +196,36 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
             Router::post('/quy-trinh/{id:\d+}/buoc', [WorkflowController::class, 'addStep'])->name('admin.workflow.add_step');
             Router::post('/quy-trinh/{id:\d+}/chuyen-tiep', [WorkflowController::class, 'addTransition'])->name('admin.workflow.add_transition');
         });
+
+        // ====================================================================
+        // PH02: Bộ phận Một cửa (CB_MOT_CUA)
+        // ====================================================================
+        Router::get('/mot-cua', [MotCuaController::class, 'dashboard'])->name('admin.motcua.dashboard');
+        Router::get('/mot-cua/dashboard', [MotCuaController::class, 'dashboard']);
+
+        // Tiếp nhận trực tiếp & Quét QR CCCD
+        Router::get('/mot-cua/tiep-nhan', [MotCuaController::class, 'tiepNhanForm'])->name('admin.motcua.tiepNhanForm');
+        Router::post('/mot-cua/api/verify-cccd', [MotCuaController::class, 'apiVerifyCccd'])->name('admin.motcua.verifyCccd');
+        Router::post('/mot-cua/tiep-nhan', [MotCuaController::class, 'submitTiepNhan'])->name('admin.motcua.submitTiepNhan');
+        Router::get('/mot-cua/in-giay-hen/{id:\d+}', [MotCuaController::class, 'inGiayHen'])->name('admin.motcua.inGiayHen');
+
+        // Hồ sơ trực tuyến chờ tiếp nhận
+        Router::get('/mot-cua/truc-tuyen', [MotCuaController::class, 'danhSachTrucTuyen'])->name('admin.motcua.hoSoTrucTuyen');
+        Router::get('/mot-cua/ho-so-truc-tuyen', [MotCuaController::class, 'danhSachTrucTuyen']);
+        Router::get('/mot-cua/truc-tuyen/{id:\d+}', [MotCuaController::class, 'chiTietTrucTuyen'])->name('admin.motcua.chiTietTrucTuyen');
+        Router::post('/mot-cua/truc-tuyen/{id:\d+}/tiep-nhan', [MotCuaController::class, 'tiepNhanTrucTuyen'])->name('admin.motcua.tiepNhanTrucTuyen');
+        Router::post('/mot-cua/truc-tuyen/{id:\d+}/yeu-cau-bo-sung', [MotCuaController::class, 'yeuCauBoSung'])->name('admin.motcua.yeuCauBoSung');
+        Router::get('/mot-cua/truc-tuyen/{id:\d+}/in-phieu-bo-sung', [MotCuaController::class, 'inPhieuBoSung'])->name('admin.motcua.inPhieuBoSung');
+        Router::post('/mot-cua/truc-tuyen/{id:\d+}/tu-choi', [MotCuaController::class, 'tuChoiTiepNhan'])->name('admin.motcua.tuChoiTiepNhan');
+        Router::get('/mot-cua/truc-tuyen/{id:\d+}/in-phieu-tu-choi', [MotCuaController::class, 'inPhieuTuChoi'])->name('admin.motcua.inPhieuTuChoi');
+
+        // Trả kết quả TTHC & Bưu chính VNPost
+        Router::get('/mot-cua/tra-ket-qua', [MotCuaController::class, 'traKetQua'])->name('admin.motcua.traKetQua');
+        Router::post('/mot-cua/tra-ket-qua', [MotCuaController::class, 'submitTraKetQua'])->name('admin.motcua.submitTraKetQua');
+        Router::post('/mot-cua/de-xuat-huy', [MotCuaController::class, 'deXuatHuy'])->name('admin.motcua.deXuatHuy');
+
+        // Sổ theo dõi hồ sơ Mẫu 06 TT 01/2018
+        Router::get('/mot-cua/so-theo-doi', [MotCuaController::class, 'soTheoDoi'])->name('admin.motcua.soTheoDoi');
+        Router::get('/mot-cua/so-theo-doi/export', [MotCuaController::class, 'exportSoTheoDoi'])->name('admin.motcua.exportSoTheoDoi');
     });
 });

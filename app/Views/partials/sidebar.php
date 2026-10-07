@@ -26,24 +26,35 @@
                 </a>
             </li>
 
-            <li class="sidebar-heading">Bộ phận Một cửa</li>
+            <li class="sidebar-heading">Bộ phận Một cửa (PH02)</li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/mot-cua/tiep-nhan')) ?>" class="sidebar-link">
-                    <span class="sidebar-icon">📥</span>
-                    <span class="sidebar-text">Bàn tiếp nhận</span>
+                <a href="<?= e(url('/admin/mot-cua')) ?>" class="sidebar-link <?= (($_SERVER['REQUEST_URI'] ?? '') === '/HP-eGov/admin/mot-cua' || ($_SERVER['REQUEST_URI'] ?? '') === '/HP-eGov/admin/mot-cua/dashboard') ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🏢</span>
+                    <span class="sidebar-text">Bàn làm việc Một cửa</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/mot-cua/truc-tuyen')) ?>" class="sidebar-link">
+                <a href="<?= e(url('/admin/mot-cua/tiep-nhan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/mot-cua/tiep-nhan')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📥</span>
+                    <span class="sidebar-text">Tiếp nhận trực tiếp</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/mot-cua/truc-tuyen')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/mot-cua/truc-tuyen')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">🌐</span>
                     <span class="sidebar-text">Hồ sơ trực tuyến</span>
-                    <span class="sidebar-badge">Mới</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/mot-cua/tra-ket-qua')) ?>" class="sidebar-link">
+                <a href="<?= e(url('/admin/mot-cua/tra-ket-qua')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/mot-cua/tra-ket-qua')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">📤</span>
                     <span class="sidebar-text">Trả kết quả</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/mot-cua/so-theo-doi')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/mot-cua/so-theo-doi')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📖</span>
+                    <span class="sidebar-text">Sổ theo dõi (Mẫu 06)</span>
                 </a>
             </li>
 
