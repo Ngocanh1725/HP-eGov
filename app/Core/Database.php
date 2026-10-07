@@ -35,6 +35,22 @@ class Database
     }
 
     /**
+     * Alias tiện ích lấy kết nối PDO mặc định (Master)
+     */
+    public static function connection(): PDO
+    {
+        return self::getWritePdo();
+    }
+
+    /**
+     * Alias tiện ích lấy kết nối PDO
+     */
+    public static function pdo(): PDO
+    {
+        return self::getWritePdo();
+    }
+
+    /**
      * Lấy kết nối PDO Read (cho thao tác SELECT)
      * Nếu không cấu hình Host riêng cho Replica thì tự động tái sử dụng kết nối Master.
      *

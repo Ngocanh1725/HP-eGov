@@ -75,17 +75,50 @@
                 </a>
             </li>
 
-            <li class="sidebar-heading">Hệ thống & Thiết kế</li>
+            <li class="sidebar-heading">Cá nhân & Tiện ích</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/ho-so-ca-nhan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/ho-so-ca-nhan')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">👤</span>
+                    <span class="sidebar-text">Hồ sơ cá nhân</span>
+                </a>
+            </li>
             <li class="sidebar-item">
                 <a href="<?= e(url('/admin/ui-kit')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/ui-kit')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">🎨</span>
                     <span class="sidebar-text">Thư viện UI Kit</span>
                 </a>
             </li>
+
+            <?php if (can('admin.nguoi_dung') || can('admin.vai_tro_quyen') || has_role('SYSADMIN')): ?>
+            <li class="sidebar-heading">Quản trị hệ thống (PH11)</li>
+            <?php if (can('admin.nguoi_dung') || has_role('SYSADMIN')): ?>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/he-thong/nguoi-dung')) ?>" class="sidebar-link">
-                    <span class="sidebar-icon">⚙</span>
-                    <span class="sidebar-text">Quản trị & Phân quyền</span>
+                <a href="<?= e(url('/admin/he-thong/nguoi-dung')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/nguoi-dung')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">👥</span>
+                    <span class="sidebar-text">Tài khoản Cán bộ</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/cong-dan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/cong-dan')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🪪</span>
+                    <span class="sidebar-text">Tài khoản Công dân</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            <?php if (can('admin.vai_tro_quyen') || has_role('SYSADMIN')): ?>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/vai-tro')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/vai-tro')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🛡️</span>
+                    <span class="sidebar-text">Ma trận quyền RBAC</span>
+                </a>
+            </li>
+            <?php endif; ?>
+            <?php endif; ?>
+
+            <li class="sidebar-item mt-3">
+                <a href="<?= e(url('/admin/dang-xuat')) ?>" class="sidebar-link text-danger">
+                    <span class="sidebar-icon">🚪</span>
+                    <span class="sidebar-text">Đăng xuất</span>
                 </a>
             </li>
         </ul>

@@ -113,7 +113,9 @@ class Session
     public static function regenerate(bool $deleteOldSession = true): void
     {
         self::start();
-        session_regenerate_id($deleteOldSession);
+        if (!headers_sent()) {
+            session_regenerate_id($deleteOldSession);
+        }
     }
 
     /**

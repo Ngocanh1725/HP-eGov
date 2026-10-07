@@ -8,49 +8,51 @@ use App\Core\ErrorHandler;
 use App\Core\MiddlewareInterface;
 use App\Core\Request;
 use App\Core\Response;
-use App\Core\Session;
+use App\Services\AuditService;
+use App\Services\AuthService;
 use Closure;
 
 /**
  * Class PermissionMiddleware
- * Kiểm tra phân quyền RBAC của cán bộ đối với từng tuyến đường cụ thể (§4.1 & Master Rules)
+ * Kiểm tra quyền hạn thao tác (RBAC) của cán bộ theo mã quyền (can:quyen.ma)
  */
 class PermissionMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, Closure $next, mixed ...$args): Response
     {
-        // Kiểm tra xem đã đăng nhập chưa
-        if (!Session::has('user_id')) {
-            return ErrorHandler::renderError($request, 401, "Yêu cầu đăng nhập tài khoản cán bộ để tiếp tục.");
-        }
+        $permissionCode = $args[0] ?? null;
 
-        // Nếu không yêu cầu quyền cụ thể
-        if (empty($args)) {
+        if (empty($permissionCode)) {
             return $next($request);
         }
 
-        $userPermissions = Session::get('user_permissions', []);
+        // Kiểm tra quyền từ AuthService
+        if (!AuthService::can($permissionCode)) {
+            $userId = AuthService::id();
+            $roles = implode(',', AuthService::roles());
 
-        // Superadmin có quyền '*'
-        if (in_array('*', $userPermissions, true)) {
-            return $next($request);
-        }
+            // Ghi nhận nhật ký kiểm toán hành vi truy cập trái phép
+            AuditService::log(
+                $userId,
+                'TRUY_CAP_TRAI_PHEP_403',
+                'phan_quyen',
+                null,
+                null,
+                "Truy cập trái phép tính năng yêu cầu quyền [{$permissionCode}]. Vai trò hiện tại: [{$roles}], URL: " . $request->path()
+            );
 
-        // Kiểm tra có ít nhất 1 quyền thỏa mãn trong danh sách quyền yêu cầu
-        $hasPermission = false;
-        foreach ($args as $requiredPermission) {
-            if (in_array($requiredPermission, $userPermissions, true)) {
-                $hasPermission = true;
-                break;
+            if ($request->wantsJson()) {
+                return ErrorHandler::renderError(
+                    $request,
+                    403,
+                    "Bạn không có quyền [{$permissionCode}] để thực hiện thao tác này."
+                );
             }
-        }
 
-        if (!$hasPermission) {
-            $requiredStr = implode(', ', $args);
             return ErrorHandler::renderError(
                 $request,
                 403,
-                "Bạn không được cấp quyền truy cập chức năng này. Quyền yêu cầu: [{$requiredStr}]."
+                "Từ chối truy cập (403 Forbidden): Đồng chí không được phân quyền [{$permissionCode}] để sử dụng chức năng này."
             );
         }
 

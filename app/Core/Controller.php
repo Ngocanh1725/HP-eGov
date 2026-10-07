@@ -47,7 +47,7 @@ abstract class Controller
      */
     protected function redirect(string $url, int $status = 302): Response
     {
-        return Response::redirect($url, $status);
+        return Response::redirect(url($url), $status);
     }
 
     /**

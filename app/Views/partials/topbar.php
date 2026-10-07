@@ -6,8 +6,27 @@
         </button>
 
         <div class="unit-node-badge" title="Đơn vị và bộ phận công tác hiện tại">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m0 14A6 6 0 1 1 8 2a6 6 0 0 1 0 12"/></svg>
-            <span><?= e($currentDonVi ?? 'UBND TP. Hải Phòng — Bộ phận Một cửa') ?></span>
+            <?php 
+                $curDv = current_don_vi();
+                $dvList = \App\Services\AuthService::donViList();
+            ?>
+            <?php if (count($dvList) > 1): ?>
+                <div class="dropdown" style="display:inline-block;">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-dropdown-toggle style="font-size:0.8rem; padding: 2px 8px; border:none; background:none; color:inherit; font-weight:600; cursor:pointer;">
+                        <span>🏢 <?= e($curDv['ten_don_vi'] ?? 'Đơn vị công tác') ?> ▾</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-header">Chuyển đơn vị làm việc kiêm nhiệm:</div>
+                        <?php foreach ($dvList as $dv): ?>
+                            <a href="<?= e(url('/admin/chuyen-don-vi/' . $dv['id'])) ?>" class="dropdown-item <?= ((int)$dv['id'] === (int)($curDv['id'] ?? 0)) ? 'active fw-bold' : '' ?>">
+                                <?= e($dv['ten_don_vi']) ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php else: ?>
+                <span>🏢 <?= e($curDv['ten_don_vi'] ?? 'UBND TP. Hải Phòng') ?></span>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -57,14 +76,13 @@
                     <?= e(mb_substr(auth()['ho_ten'] ?? 'CB', 0, 1, 'UTF-8')) ?>
                 </div>
                 <div class="user-info-text text-left">
-                    <div class="user-name"><?= e(auth()['ho_ten'] ?? 'Nguyễn Văn Minh') ?></div>
-                    <div class="user-role"><?= e(auth()['vai_tro'] ?? 'Cán bộ Một cửa') ?></div>
+                    <div class="user-name"><?= e(auth()['ho_ten'] ?? 'Cán bộ') ?></div>
+                    <div class="user-role"><?= e(implode(', ', \App\Services\AuthService::roles() ?: ['Cán bộ'])) ?></div>
                 </div>
             </button>
             <div class="dropdown-menu">
                 <div class="dropdown-header">Tài khoản Cán bộ</div>
-                <a href="<?= e(url('/admin/ho-so-ca-nhan')) ?>" class="dropdown-item">Hồ sơ cá nhân & Chứng thư số</a>
-                <a href="<?= e(url('/admin/doi-mat-khau')) ?>" class="dropdown-item">Đổi mật khẩu</a>
+                <a href="<?= e(url('/admin/ho-so-ca-nhan')) ?>" class="dropdown-item">Hồ sơ cá nhân & Bảo mật</a>
                 <div style="border-top:1px solid var(--border-color);margin:4px 0;"></div>
                 <a href="<?= e(url('/admin/dang-xuat')) ?>" class="dropdown-item text-danger">Đăng xuất</a>
             </div>

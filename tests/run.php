@@ -127,6 +127,13 @@ class TestRunner
         }
     }
 
+    public static function assertGreaterThan(int|float $expected, int|float $actual, string $msg = ''): void
+    {
+        if ($actual <= $expected) {
+            throw new RuntimeException($msg ?: "Kỳ vọng {$actual} lớn hơn {$expected}.");
+        }
+    }
+
     public static function assertContains(mixed $needle, array|string $haystack, string $msg = ''): void
     {
         if (is_string($haystack)) {

@@ -183,17 +183,49 @@ if (!function_exists('date_vn')) {
 
 if (!function_exists('auth')) {
     /**
-     * Lấy thông tin người dùng đang đăng nhập
+     * Lấy thông tin người dùng đang đăng nhập hoặc kiểm tra guard
      *
      * @param string|null $guard 'can_bo' hoặc 'cong_dan'
      * @return array<string, mixed>|null
      */
     function auth(?string $guard = null): ?array
     {
-        if ($guard === 'cong_dan') {
-            return Session::get('cong_dan_user');
+        if ($guard !== null && \App\Services\AuthService::guard() !== $guard) {
+            return null;
         }
-
-        return Session::get('user');
+        return \App\Services\AuthService::user();
     }
 }
+
+if (!function_exists('can')) {
+    /**
+     * Kiểm tra quyền của người dùng hiện tại
+     */
+    function can(string $permissionCode): bool
+    {
+        return \App\Services\AuthService::can($permissionCode);
+    }
+}
+
+if (!function_exists('has_role')) {
+    /**
+     * Kiểm tra vai trò của người dùng hiện tại
+     *
+     * @param string|array $role
+     */
+    function has_role(string|array $role): bool
+    {
+        return \App\Services\AuthService::hasRole($role);
+    }
+}
+
+if (!function_exists('current_don_vi')) {
+    /**
+     * Lấy thông tin đơn vị làm việc hiện tại của cán bộ
+     */
+    function current_don_vi(): ?array
+    {
+        return \App\Services\AuthService::currentDonVi();
+    }
+}
+

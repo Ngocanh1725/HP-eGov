@@ -9,39 +9,39 @@ use App\Core\MiddlewareInterface;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Services\AuthService;
 use Closure;
 
 /**
  * Class AuthMiddleware
- * Xác thực phiên đăng nhập của người dùng (khung cơ sở cho Phiên 5)
+ * Xác thực phiên đăng nhập của người dùng theo guard (can_bo hoặc cong_dan)
  */
 class AuthMiddleware implements MiddlewareInterface
 {
     public function handle(Request $request, Closure $next, mixed ...$args): Response
     {
-        $guard = $args[0] ?? 'can_bo'; // 'can_bo' hoặc 'cong_dan'
+        $guard = $args[0] ?? AuthService::GUARD_CAN_BO; // 'can_bo' hoặc 'cong_dan'
 
-        $isLoggedIn = false;
-        if ($guard === 'cong_dan') {
-            $isLoggedIn = Session::has('cong_dan_id');
-        } else {
-            $isLoggedIn = Session::has('user_id');
-        }
-
-        if (!$isLoggedIn) {
+        if (!AuthService::check($guard)) {
             if ($request->wantsJson()) {
                 return ErrorHandler::renderError(
                     $request,
                     401,
-                    "Yêu cầu xác thực danh tính để truy cập tài nguyên này."
+                    "Yêu cầu đăng nhập để truy cập tài nguyên này."
                 );
             }
 
-            // Lưu đường dẫn hiện tại để chuyển hướng lại sau khi đăng nhập
             Session::set('url.intended', $request->path());
-
-            $loginUrl = ($guard === 'cong_dan') ? '/cong-dan/dang-nhap' : '/admin/dang-nhap';
+            $loginUrl = ($guard === AuthService::GUARD_CONG_DAN) ? '/dang-nhap' : '/admin/dang-nhap';
             return Response::redirect(url($loginUrl));
+        }
+
+        // Nếu là cán bộ và đang bị cờ bắt buộc đổi mật khẩu lần đầu
+        if ($guard === AuthService::GUARD_CAN_BO && AuthService::mustChangePassword()) {
+            $path = $request->path();
+            if ($path !== '/admin/doi-mat-khau-lan-dau' && $path !== '/admin/dang-xuat') {
+                return Response::redirect(url('/admin/doi-mat-khau-lan-dau'));
+            }
         }
 
         return $next($request);

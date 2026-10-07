@@ -24,6 +24,8 @@ class Pipeline
         'auth'             => \App\Middleware\AuthMiddleware::class,
         'guest'            => \App\Middleware\GuestMiddleware::class,
         'permission'       => \App\Middleware\PermissionMiddleware::class,
+        'can'              => \App\Middleware\PermissionMiddleware::class,
+        'data_scope'       => \App\Middleware\DataScopeMiddleware::class,
     ];
 
     /**

@@ -16,8 +16,7 @@
 | **1** | **Phân tích & Thiết kế hệ thống** | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | **Hoàn thành** | 2026-10-07 | `docs/01_PHAN_TICH_THIET_KE.md` |
 | **2** | **Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu** | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | **Hoàn thành** | 2026-10-07 | `database/schema.sql`, `database/seed.sql`, `docs/02_THIET_KE_CSDL.md` |
 | **3** | **Lõi MVC (Core Framework)** | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | **Hoàn thành** | 2026-10-07 | `app/Core/*`, `tests/run.php`, `public/index.php` |
-| **4** | **Design System & Layout giao diện** | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | **Hoàn thành** | 2026-10-07 | `public/assets/*`, `layouts/*`, `ui_kit.php` |
-| **5** | Xác thực & Phân quyền RBAC đa cấp | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | *Chưa làm* | - | Kế hoạch: PH11, `app/Services/AuthService.php`, `AuditService.php` |
+| **5** | **Xác thực & Phân quyền RBAC đa cấp** | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | **Hoàn thành** | 2026-10-07 | PH11, `AuthService.php`, `AuditService.php`, `VNeID Sandbox` |
 | **6** | Danh mục dùng chung (MDM) & Quy trình | MDM ĐVHC, TTHC quốc gia, BPMN-lite quy trình liên thông, E-Form designer JSON | *Chưa làm* | - | Kế hoạch: PH09, PH10, `app/Services/WorkflowEngine.php` |
 | **7** | Cổng Dịch vụ công (Công dân) | Wizard nộp hồ sơ, Auto-fill VNeID, Kho số hóa công dân, tra cứu QR, SIPAS | *Chưa làm* | - | Kế hoạch: PH01, `app/Controllers/Portal/*` |
 | **8** | Bộ phận Một cửa | Bàn tiếp nhận, quét QR CCCD, số hóa NĐ 107/2021, OCR mock, in Giấy hẹn A4 | *Chưa làm* | - | Kế hoạch: PH02, `app/Controllers/Admin/MotCuaController.php` |
@@ -199,7 +198,58 @@
   - `app/Controllers/Admin/UiKitController.php`, `app/Views/admin/ui_kit.php`
   - `app/Views/portal/home.php`, `routes/web.php`
 - **Kế hoạch cho Phiên 5:**
-  - Chạy **Phiên 5/16 – Xác thực & Phân quyền RBAC đa cấp**: Xây dựng Guard cán bộ & công dân, SSO VNeID mock, đăng nhập mật khẩu Bcrypt + Captcha (GD), chống Brute-force (khóa 15 phút sau 5 lần sai), phân quyền 7 vai trò bám sát ma trận quyền §4.1, kiểm soát phạm vi dữ liệu Data Scope theo cây đơn vị `don_vi.path`, Audit log chuỗi băm WORM SHA-256 (`nhat_ky_kiem_toan`).
+  - Chạy **Phiên 5/16 – Xác thực & Phân quyền RBAC đa cấp**: Đã hoàn thành toàn diện các yêu cầu.
+
+### PHIÊN 5: XÁC THỰC & PHÂN QUYỀN RBAC ĐA CẤP
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. Xây dựng dịch vụ nhật ký kiểm toán WORM `app/Services/AuditService.php`:
+     - Ghi nhật ký bảo mật với chuỗi băm WORM SHA-256: `hash = SHA256(prev_hash | data)`.
+     - Hàm `verifyChain(?int $limit, int $offset)` kiểm tra tính liên tục của chuỗi và tính toàn vẹn của từng bản ghi, phát hiện chính xác ID bản ghi bị giả mạo.
+     - Đã kiểm thử xác thực 100% hợp lệ trên 50+ bản ghi hiện có.
+  2. Xây dựng dịch vụ Captcha chống Brute-force `app/Services/CaptchaService.php` & `CaptchaController.php`:
+     - Sử dụng thư viện PHP GD cục bộ sinh ảnh PNG ngẫu nhiên với đường kẻ và chấm nhiễu chống OCR.
+     - Cơ chế một lần (Single-use token) tự động xóa sau khi kiểm tra.
+  3. Xây dựng lõi xác thực 2 cổng `app/Services/AuthService.php` & Facade `app/Core/Auth.php`:
+     - Guard Cán bộ (`/admin/dang-nhap`): Bcrypt hash, khóa 15 phút sau 5 lần sai liên tiếp, bắt buộc Captcha sau 3 lần sai, bắt đổi mật khẩu lần đầu (`yeu_cau_doi_mk = 1`), ghi `nhat_ky_dang_nhap`, chọn node đơn vị công tác và hỗ trợ chuyển đổi đơn vị kiêm nhiệm (`switchDonVi()`).
+     - Guard Công dân (`/dang-nhap`):
+       + (a) VNeID Sandbox mô phỏng OIDC Authorization Code Flow (CSRF `state`, `nonce`, Consent Screen, trích xuất CCCD, Họ tên, Ngày sinh, Giới tính, Quê quán, Thường trú từ C06; tự động tạo/cập nhật `cong_dan`).
+       - (b) Đăng nhập Doanh nghiệp qua Mã số thuế + mật khẩu.
+     - Caching session quyền hạn, vai trò, đơn vị làm việc; hỗ trợ `can()`, `hasRole()`, `currentDonVi()`, `donViList()`, `refresh()`.
+  4. Hệ thống Middleware phân quyền:
+     - `AuthMiddleware`: Bảo vệ route theo guard (`auth:can_bo` hoặc `auth:cong_dan`), kiểm tra cờ bắt buộc đổi mật khẩu lần đầu.
+     - `PermissionMiddleware`: Hỗ trợ alias `can:quyen.ma` (ví dụ `can:admin.nguoi_dung`). Xử lý chặn truy cập trái phép trả về 403 Forbidden và ghi nhật ký kiểm toán.
+     - `DataScopeMiddleware` & `DataScopeService`: Ràng buộc phạm vi truy cập hồ sơ (Công dân chỉ xem hồ sơ của mình chống IDOR; Cán bộ một cửa theo đơn vị; Chuyên viên theo phân công; Lãnh đạo theo phòng/cơ quan/toàn TP; **SYSADMIN tuyệt đối không được can thiệp hồ sơ nghiệp vụ**).
+  5. Phân hệ Quản trị PH11 (SYSADMIN):
+     - `app/Controllers/Admin/UserController.php`: Quản lý danh sách cán bộ, mở khóa tài khoản bị khóa do nhập sai, bật/tắt kích hoạt (không xóa vật lý), reset mật khẩu về `Hpegov@2026`, danh sách công dân/doanh nghiệp.
+     - `app/Controllers/Admin/RoleController.php`: Quản lý Ma trận phân quyền RBAC dạng lưới checkbox (7 vai trò $\times$ các nhóm quyền). **Chặn cứng bất biến**: Tự động loại bỏ và cảnh báo nếu có thao tác cấp quyền `hoso.*`, `kyso.*`, `thu_ly.*` cho vai trò `SYSADMIN`.
+     - `app/Controllers/Admin/ProfileController.php`: Xem hồ sơ công chức, đổi mật khẩu cá nhân, xem lịch sử 20 lần đăng nhập gần nhất từ `nhat_ky_dang_nhap`.
+  6. Giao diện người dùng:
+     - `app/Views/admin/auth/login.php`: Đăng nhập cán bộ trang trọng, hiển thị Captcha khi sai $\ge 3$ lần.
+     - `app/Views/admin/auth/force_change_password.php`: Bắt đổi mật khẩu lần đầu chuẩn chính sách $\ge 10$ ký tự.
+     - `app/Views/portal/auth/login.php`: Cổng đăng nhập công dân 2 tab (VNeID nổi bật và Doanh nghiệp MST).
+     - `app/Views/portal/auth/vneid_sandbox.php`: Giả lập VNeID C06 Bộ Công an có QR, chọn công dân mẫu nhanh và màn hình ủy quyền chia sẻ dữ liệu (Consent).
+     - `app/Views/admin/users/index.php`, `citizens.php`, `admin/roles/matrix.php`, `admin/profile/index.php`.
+     - Cập nhật header, sidebar, topbar hiển thị vai trò động và dropdown chuyển đổi đơn vị kiêm nhiệm.
+  7. Kiểm thử toàn diện:
+     - `tests/Unit/AuditTest.php`: Kiểm tra băm WORM, ghi log và `verifyChain()`.
+     - `tests/Unit/AuthTest.php`: Đăng nhập đúng, kiểm tra đếm sai và khóa 15 phút, đăng nhập VNeID mock.
+     - `tests/Unit/DataScopeTest.php`: Chặn cứng SYSADMIN không có quyền nghiệp vụ, chống IDOR công dân.
+     - Chạy `tests/run.php`: **28/28 tests passed (100% xanh)**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/AuditService.php`, `AuthService.php`, `CaptchaService.php`, `DataScopeService.php`
+  - `app/Core/Auth.php`, `app/Core/Database.php`, `app/Core/Session.php`, `app/Core/Pipeline.php`, `app/Core/Controller.php`
+  - `app/Helpers/functions.php`
+  - `app/Controllers/Admin/AuthController.php`, `UserController.php`, `RoleController.php`, `ProfileController.php`
+  - `app/Controllers/Portal/AuthController.php`, `app/Controllers/CaptchaController.php`
+  - `app/Middleware/AuthMiddleware.php`, `PermissionMiddleware.php`, `DataScopeMiddleware.php`
+  - `app/Views/admin/auth/login.php`, `force_change_password.php`, `portal/auth/login.php`, `vneid_sandbox.php`
+  - `app/Views/admin/users/index.php`, `citizens.php`, `admin/roles/matrix.php`, `admin/profile/index.php`
+  - `app/Views/partials/header.php`, `sidebar.php`, `topbar.php`, `routes/web.php`
+  - `tests/Unit/AuditTest.php`, `AuthTest.php`, `DataScopeTest.php`, `tests/run.php`
+- **Kế hoạch cho Phiên 6:**
+  - Thực hiện **Phiên 6/16 – Danh mục dùng chung (MDM) & Quản trị quy trình**: PH09 (ĐVHC 3 cấp, cây tổ chức QCVN 102, Chức danh, Lĩnh vực, TTHC quốc gia có adapter CsdlTthcQuocGia mock đồng bộ, E-Form designer JSON, tham số hệ thống), PH10 (BPMN-lite, thiết kế bước, vai trò, đơn vị, liên thông logistics cảng biển, hiển thị SVG/Mermaid trực quan).
+
 
 
 

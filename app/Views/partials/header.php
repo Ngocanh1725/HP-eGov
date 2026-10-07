@@ -36,13 +36,13 @@
         <div class="portal-auth-actions">
             <?php if (auth('cong_dan')): ?>
                 <span class="text-white fw-semibold">Xin chào, <?= e(auth('cong_dan')['ho_ten'] ?? 'Công dân') ?></span>
-                <a href="<?= e(url('/cong-dan/ho-so-cua-toi')) ?>" class="btn btn-sm btn-gold">Hồ sơ của tôi</a>
-                <a href="<?= e(url('/cong-dan/dang-xuat')) ?>" class="btn btn-sm btn-outline text-white">Đăng xuất</a>
+                <a href="<?= e(url('/cong-dan/ho-so')) ?>" class="btn btn-sm btn-gold">Hồ sơ của tôi</a>
+                <a href="<?= e(url('/dang-xuat')) ?>" class="btn btn-sm btn-outline text-white">Đăng xuất</a>
             <?php else: ?>
-                <a href="<?= e(url('/cong-dan/tra-cuu')) ?>" class="btn btn-sm btn-outline text-white">Tra cứu hồ sơ</a>
-                <a href="<?= e(url('/cong-dan/dang-nhap')) ?>" class="btn btn-sm btn-gold">
+                <a href="<?= e(url('/tra-cuu')) ?>" class="btn btn-sm btn-outline text-white">Tra cứu hồ sơ</a>
+                <a href="<?= e(url('/dang-nhap')) ?>" class="btn btn-sm btn-gold">
                     <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4"/></svg>
-                    Đăng nhập VNeID
+                    Đăng nhập DVC / VNeID
                 </a>
             <?php endif; ?>
         </div>
