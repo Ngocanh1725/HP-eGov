@@ -13,7 +13,7 @@
 | Phiên | Tên phiên | Phân hệ / Nội dung chính | Trạng thái | Ngày hoàn thành | Ghi chú / File chính |
 |:---:|---|---|:---:|:---:|---|
 | **0** | **Thiết lập bối cảnh & Rule workspace** | Rule workspace, kiểm tra môi trường, khung thư mục, Git, tài liệu tiến độ | **Hoàn thành** | 2026-10-07 | `.agents/rules/hp-egov.md`, `PROGRESS.md`, `00_TRUY_VET_BAO_CAO.md` |
-| **1** | Phân tích & Thiết kế hệ thống | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | *Chưa làm* | - | Kế hoạch: `docs/01_PHAN_TICH_THIET_KE.md` |
+| **1** | **Phân tích & Thiết kế hệ thống** | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | **Hoàn thành** | 2026-10-07 | `docs/01_PHAN_TICH_THIET_KE.md` |
 | **2** | Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | *Chưa làm* | - | Kế hoạch: `database/schema.sql`, `seed.sql` |
 | **3** | Lõi MVC (Core Framework) | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | *Chưa làm* | - | Kế hoạch: `app/Core/*`, `tests/run.php` |
 | **4** | Design System & Layout giao diện | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | *Chưa làm* | - | Kế hoạch: `public/assets/*`, `app/Views/layouts/*` |
@@ -54,5 +54,22 @@
   - PHP: `8.2.12` CLI (Đạt chuẩn). Các extension cần thiết (`pdo_mysql`, `openssl`, `curl`, `fileinfo`, `gd`, `mbstring`) đều đã bật.
   - Apache: `mod_rewrite` đã bật; `AllowOverride All` đã cấu hình cho `C:/xampp/htdocs`. Lưu ý: Cần nhấn **Start** Apache trên XAMPP Control Panel để phục vụ web.
   - MySQL: Cổng 3306 chưa mở (chưa khởi động service MySQL). Cần nhấn **Start** MySQL trên XAMPP Control Panel trước khi thực hiện Phiên 2.
-- **Kế hoạch cho Phiên 1:**
-  - Chạy **Phiên 1/16 – Phân tích & Thiết kế hệ thống** để tạo tài liệu đặc tả phân tích kiến trúc `docs/01_PHAN_TICH_THIET_KE.md` (Use Case, State Machine, Sequence, DFD, ERD, Sitemap, Ma trận quyền chi tiết).
+
+### PHIÊN 1: PHÂN TÍCH & THIẾT KẾ HỆ THỐNG
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. Xây dựng tài liệu phân tích thiết kế toàn diện `docs/01_PHAN_TICH_THIET_KE.md` chuẩn hóa đầy đủ 12 nội dung cốt lõi và mục giả định kỹ thuật.
+  2. Đặc tả chi tiết 15 phân hệ nghiệp vụ (PH01 – PH15) với mã yêu cầu chức năng `FRxx.yy`, phân quyền vai trò và độ ưu tiên.
+  3. Xây dựng các sơ đồ Mermaid chuyên sâu: Sơ đồ Mindmap phân hệ, Use Case tổng quát và chi tiết, Sơ đồ hoạt động luồng 5 bước (§2.1), Sơ đồ máy trạng thái (State Machine) 9 trạng thái chuẩn Thông tư 01/2018/TT-VPCP.
+  4. Thiết lập 3 sơ đồ tuần tự (Sequence Diagram) quan trọng:
+     - (a) Luồng nộp trực tuyến qua VNeID OIDC + Auto-fill E-Form;
+     - (b) Luồng liên thông dự án Logistics cảng biển: Q. Hồng Bàng → Sở XD → Sở TN&MT → Sở KH&ĐT → UBND Thành phố;
+     - (c) Luồng quá hạn SLA, kích hoạt khóa chuyển bước và lập Văn bản xin lỗi Mẫu số 04.
+  5. Thiết lập sơ đồ luồng dữ liệu DFD Mức 0 và Mức 1; Sơ đồ thực thể liên kết ERD mức khái niệm kết nối toàn diện các bảng dữ liệu.
+  6. Mô hình hóa kiến trúc 3 vùng mạng an toàn Đạt chuẩn Cấp độ 3 (Edge WAF → DMZ → Nội bộ TSLCD cấp II → CSDL Master/Replica & WORM log) đúng sơ đồ Trang 4 Báo cáo; ánh xạ chuẩn sang kiến trúc phần mềm PHP MVC.
+  7. Lập Sitemap chi tiết cho Cổng DVC và Khu vực Quản trị theo vai trò; thiết lập Ma trận phân quyền chi tiết (Matrix of Permissions).
+- **Tệp tin đã tạo:**
+  - `docs/01_PHAN_TICH_THIET_KE.md`
+- **Kế hoạch cho Phiên 2:**
+  - Chạy **Phiên 2/16 – Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu Hải Phòng** để tạo `database/schema.sql` (DDL InnoDB, Trigger cấm xóa, Views báo cáo), `database/seed.sql` (15 quận/huyện, sở ngành, 12 TTHC mẫu, 200 hồ sơ thử nghiệm) và `docs/02_THIET_KE_CSDL.md`.
+  - *Lưu ý quan trọng trước Phiên 2:* Người dùng cần khởi động MySQL trên XAMPP Control Panel (cổng 3306).
