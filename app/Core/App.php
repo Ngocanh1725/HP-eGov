@@ -92,10 +92,77 @@ class App
             self::boot();
 
             $request = Request::capture();
+
+            // Kiểm tra Chế độ bảo trì hệ thống (Static Maintenance Site)
+            if (self::isUnderMaintenance($request)) {
+                self::serveMaintenanceResponse();
+                return;
+            }
+
             $response = Router::dispatch($request);
             $response->send();
         } catch (Throwable $e) {
             ErrorHandler::handleException($e);
         }
     }
+
+    /**
+     * Kiểm tra xem hệ thống có đang ở chế độ bảo trì hay không
+     */
+    private static function isUnderMaintenance(Request $request): bool
+    {
+        $flagFile = self::basePath('storage/maintenance.flag');
+        if (!file_exists($flagFile)) {
+            return false;
+        }
+
+        $path = $request->path();
+
+        // Bỏ qua các đường dẫn kỹ thuật và đăng nhập của Quản trị viên
+        $bypassPrefixes = [
+            '/admin/dang-nhap',
+            '/admin/he-thong',
+            '/admin/thoat',
+            '/api/v1/health',
+            '/assets',
+            '/css',
+            '/js',
+            '/vendor',
+        ];
+
+        foreach ($bypassPrefixes as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                return false;
+            }
+        }
+
+        // Cho phép SYSADMIN đã đăng nhập tiếp tục truy cập
+        if (Session::has('auth_can_bo')) {
+            $user = Session::get('auth_can_bo');
+            if (is_array($user) && ($user['vai_tro'] ?? '') === 'SYSADMIN') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Trả về trang tĩnh bảo trì (Static Maintenance Site) với mã 503
+     */
+    private static function serveMaintenanceResponse(): void
+    {
+        http_response_code(503);
+        header('Retry-After: 3600');
+        header('Content-Type: text/html; charset=UTF-8');
+
+        $maintenanceFile = self::basePath('public/maintenance.html');
+        if (file_exists($maintenanceFile)) {
+            readfile($maintenanceFile);
+        } else {
+            echo '<h1>503 - Hệ thống HP-eGov đang tạm dừng bảo trì nâng cấp</h1>';
+        }
+        exit;
+    }
 }
+

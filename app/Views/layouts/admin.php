@@ -19,7 +19,13 @@
 
     <!-- Vùng giao diện chính -->
     <div class="admin-main">
+        <?php if (getenv('APP_ENV') === 'staging' || \App\Core\Config::get('app.env') === 'staging'): ?>
+        <div class="staging-global-banner" style="background:#d97706; color:#ffffff; font-weight:700; text-align:center; padding:6px 16px; font-size:12px; letter-spacing:0.5px; z-index:9999;">
+            ⚠️ MÔI TRƯỜNG ĐÀO TẠO & THỰC HÀNH CÔNG NGHỆ (STAGING) — DỮ LIỆU THỬ NGHIỆM KHÔNG CÓ GIÁ TRỊ PHÁP LÝ
+        </div>
+        <?php endif; ?>
         <?php $this->partial('partials/topbar'); ?>
+
 
         <main class="admin-content">
             <?php $this->partial('partials/breadcrumb', ['breadcrumbs' => $breadcrumbs ?? []]); ?>

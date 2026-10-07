@@ -604,7 +604,58 @@
   - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Services/AuthService.php`
   - `tests/Unit/ReportingServiceTest.php`, `tests/Integration/DashboardBaoCaoTest.php`
 - **Kế hoạch cho Phiên 13:**
-  - Thực hiện **Phiên 13/16 – Quản trị & Vận hành Hệ thống (PH12, PH13, PH15 – §2.3, §4.3, §4.4, §1.4)**: An toàn thông tin & Tra cứu Audit Trail, Kiểm tra toàn vẹn chuỗi băm WORM, Quản trị sao lưu Full/Differential/Transaction log với `mysqldump` cam kết RPO $\le$ 2h, RTO $\le$ 4h; Trang giám sát sức khỏe hệ thống Health & endpoint Prometheus `/api/v1/health`; Quản lý sự cố BCP/DRP & Static Maintenance Site; Quản lý đào tạo 4 nhóm đối tượng theo chuẩn §1.4; Soạn thảo quy chế vận hành `docs/05_QUY_CHE_VAN_HANH.md`.
+  - Hoàn thành theo đúng kế hoạch.
+
+### PHIÊN 13: QUẢN TRỊ & VẬN HÀNH HỆ THỐNG (PH12, PH13, PH15 – §1.4, §2.3, §4.3, §4.4)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **PH12 – An toàn thông tin & Nhật ký kiểm toán WORM (SYSADMIN):**
+     - Xây dựng giao diện tra cứu **Audit Trail** (`/admin/he-thong/audit`): Lọc theo người dùng, hành động, bảng tác động, ngày bắt đầu/kết thúc; phân trang mượt mà; Modal xem chi tiết Diff dữ liệu cũ/mới JSON trực quan.
+     - Nút **"Kiểm tra toàn vẹn chuỗi băm"** (AJAX call tới `AuditService::verifyChain()`): Đối soát chuỗi hàm băm SHA-256 nối tiếp ($Hash_n = \text{SHA256}(Hash_{n-1} + ...)$), tự động phát hiện mọi hành vi can thiệp trái phép. Đã kiểm tra thực tế trên 815 bản ghi: Hợp lệ toàn vẹn 100%.
+     - **Nhật ký đăng nhập** (`/admin/he-thong/nhat-ky-dang-nhap`): Theo dõi thời gian, IP, thiết bị, trình duyệt, trạng thái thành công/thất bại, lý do thất bại.
+     - **Nhật ký kết nối tích hợp LGSP** (`/admin/he-thong/nhat-ky-tich-hop`): Giám sát các giao dịch liên thông tới CSDLQG Dân cư C06, Cổng DVCQG, VNPost, SMS ZNS, SmartCA, mã HTTP Status, thời gian đáp ứng (ms) và xem payload.
+     - **Quản lý IP bị chặn & Rate Limit** (`/admin/he-thong/ip-chan`): Blacklist IP cố tình tấn công có thời hạn hoặc vĩnh viễn, xem danh sách IP đang chịu Rate Limit và nút làm sạch bộ đếm.
+     - **Cấu hình Chính sách bảo mật** (`/admin/he-thong/chinh-sach-bao-mat`): Thiết lập độ dài mật khẩu tối thiểu ($\ge 8$), số lần nhập sai khóa tài khoản (5 lần), thời gian tạm khóa (15 phút), timeout phiên (30 phút), ngưỡng rate limit (60 req/phút).
+  2. **PH13 – Sao lưu & Phục hồi CSDL chuẩn chính sách Báo cáo Kiến trúc (§2.3, §4.4):**
+     - **Full Backup:** Hằng tuần (Chủ nhật 00:00) chạy thực tế bằng `C:\xampp\mysql\bin\mysqldump.exe --single-transaction --routines --triggers`, nén, tính mã băm SHA-256 và tự động sao chép sang thư mục Trung tâm DR Site (`storage/backups/dr_site/`).
+     - **Differential Backup:** Hằng ngày (23:00) xuất toàn bộ bản ghi thay đổi kể từ bản Full gần nhất theo `updated_at`/`created_at`, lưu giữ đúng 30 ngày gần nhất và tự động thanh lọc các bản cũ.
+     - **Transaction Log:** Mỗi 2 giờ/lần xuất log thay đổi CSDL hoặc đồng bộ MySQL binary log (`log-bin` trong `my.ini`), bảo đảm cam kết **RPO $\le$ 2 giờ**.
+     - **Trang quản trị sao lưu (`/admin/he-thong/sao-luu`):** Lịch sử sao lưu, dung lượng (B/KB/MB), checksum SHA-256 đối soát, vị trí lưu trữ (ON_PREMISE & DR_SITE), nút tải về an toàn bảo mật, các nút chạy Full / Diff / Log backup tức thì.
+     - **PHỤC HỒI THỬ NGHIỆM VÀO CSDL `hp_egov_restore_test`:** Nạp bản lưu bằng `C:\xampp\mysql\bin\mysql.exe`, đối soát 56 bảng CSDL, đo thời gian thực tế **RTO = 1.75 giây** (đáp ứng xuất sắc cam kết **RTO $\le$ 4 giờ** / 240 phút); tự động ghi nhận biên bản diễn tập DRP vào bảng `dien_tap`.
+     - Hướng dẫn cấu hình lệnh Windows Task Scheduler (`schtasks`) mẫu và kích hoạt `log-bin` trong `my.ini`.
+  3. **Giám sát sức khỏe hệ thống thời gian thực (Health Dashboard & API Prometheus):**
+     - Trang Dashboard Health (`/admin/he-thong/health`): DB Ping & độ trễ kết nối (3.15 ms), Dung lượng ổ đĩa hệ thống (Gauge % used, Free/Total GB), Kích thước thư mục lưu trữ `storage/` (3.07 MB), Độ dài hàng đợi thông báo Outbox (`hang_doi_thong_bao`), Lần chạy cron gần nhất, Phiên bản PHP (8.2.12), MariaDB (10.4.32), Máy chủ web (Apache 2.4), OS (Windows NT), Số phiên người dùng đang hoạt động (7 phiên).
+     - REST API Endpoint công khai `/api/v1/health`: Trả JSON chuẩn hóa mã HTTP 200/503 phục vụ giám sát bằng Prometheus, Zabbix, Uptime Kuma ở production.
+  4. **Quản lý sự cố & Kế hoạch duy trì hoạt động BCP/DRP (§4.3, §4.4):**
+     - Sổ theo dõi sự cố an toàn thông tin & gián đoạn dịch vụ (`su_co`): Phân loại sự cố (Đứt TSLCD, DDoS, Ransomware, Deface, DB Failover...), mức độ, thời gian phát hiện/khắc phục, người xử lý, giải pháp áp dụng.
+     - Phân định ma trận **RACI** chi tiết: Sở TT&TT (A/R) vs Đơn vị nghiệp vụ (C/I) vs Nhà cung cấp viễn thông (R).
+     - Sổ theo dõi & Biên bản diễn tập định kỳ (`dien_tap`): Diễn tập An toàn thông tin (chu kỳ 6 tháng/lần) và Diễn tập Phục hồi thảm họa DRP (chu kỳ 12 tháng/lần) kèm cảnh báo nhắc hẹn khi sắp hoặc quá hạn.
+     - **Chế độ bảo trì tĩnh (Static Maintenance Site):** Bật/Tắt tức thời từ giao diện quản trị; khi bật, tự động tạo tệp cờ `storage/maintenance.flag`, trả về trang tĩnh `public/maintenance.html` (Mã HTTP 503) nhận diện chuẩn Hải Phòng cho toàn bộ công dân, chỉ cho phép SYSADMIN truy cập.
+  5. **PH15 – Đào tạo & Chuyển giao công nghệ 4 nhóm cán bộ (§1.4):**
+     - Xây dựng 4 khóa đào tạo chuẩn theo bảng §1.4:
+       1. Cán bộ Một cửa (`MOT_CUA`): Tiêu chuẩn đạt điểm trắc nghiệm $\ge 90/100$.
+       2. Chuyên viên thụ lý (`CHUYEN_VIEN`): Tiêu chuẩn đạt hoàn thành 10 bộ hồ sơ mẫu không lỗi quy trình.
+       3. Lãnh đạo phê duyệt (`LANH_DAO`): Tiêu chuẩn ký số thành công 100% hồ sơ mẫu bằng SmartCA / USB Token.
+       4. Quản trị viên hệ thống (`SYSADMIN`): Tiêu chuẩn phục hồi CSDL thành công trong thời gian RTO < 4 giờ.
+     - Giao diện quản trị khóa học, ghi danh học viên, nhập điểm thi, số hồ sơ thực hành, nhận xét và tự động đánh giá ĐẠT / KHÔNG ĐẠT.
+     - Báo cáo thanh tiến độ % tỷ lệ đạt chuẩn từng khóa học.
+     - Nhận diện môi trường Staging: Tự động hiển thị biểu ngữ cảnh báo màu cam `[⚠️ MÔI TRƯỜNG ĐÀO TẠO & THỰC HÀNH CÔNG NGHỆ (STAGING) — DỮ LIỆU THỬ NGHIỆM KHÔNG CÓ GIÁ TRỊ PHÁP LÝ]` khi cờ `APP_ENV=staging`.
+  6. **Biên soạn Quy chế Quản trị & Vận hành (`docs/05_QUY_CHE_VAN_HANH.md`):**
+     - Đầy đủ 6 chương chuẩn thể thức hành chính: Ma trận RACI, SOP vận hành hàng ngày/tuần/tháng, Quy trình sao lưu 3 tầng (Full, Diff, Log), Quy trình kiểm thử phục hồi DRP, Quy chế bảo mật WORM, Kịch bản ứng cứu 4 loại sự cố khẩn cấp và Quy định đào tạo 4 nhóm cán bộ.
+  7. **Kiểm thử tự động & Tích hợp:**
+     - **Integration Test (`tests/Integration/QuanTriVanHanhTest.php`):** Đạt 7/7 test cases (Full backup & test restore vào `hp_egov_restore_test` trên XAMPP, Differential & Log backup, WORM hash chain integrity, HealthCheckService, SecurityPolicy & IP block, SYSADMIN RBAC 403 protection, TrainingService 4 nhóm).
+     - **Toàn bộ Test Suite:** **83/83 tests passed 100%** (`tests/run.php`).
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/BackupService.php`, `app/Services/HealthCheckService.php`, `app/Services/SecurityPolicyService.php`, `app/Services/IncidentService.php`, `app/Services/TrainingService.php`
+  - `app/Controllers/Admin/HeThongController.php`
+  - `app/Views/admin/he_thong/audit.php`, `nhat_ky_dang_nhap.php`, `nhat_ky_tich_hop.php`, `ip_chan.php`, `chinh_sach_bao_mat.php`, `sao_luu.php`, `health.php`, `su_co.php`, `dao_tao.php`
+  - `cron/backup_full.php`, `cron/backup_diff.php`, `cron/backup_log.php`
+  - `public/maintenance.html`
+  - `app/Core/App.php`, `routes/web.php`, `routes/api.php`, `app/Views/partials/sidebar.php`, `app/Views/partials/breadcrumb.php`, `app/Views/layouts/admin.php`, `app/Views/layouts/portal.php`
+  - `docs/05_QUY_CHE_VAN_HANH.md`, `tests/Integration/QuanTriVanHanhTest.php`
+- **Kế hoạch cho Phiên 14:**
+  - Thực hiện **Phiên 14/16 – ETL, Tích hợp & API (PH11, PH14 – §1.1, §1.3)**: Pipeline ETL 4 bước (Extract, Staging & Profiling, Transform, Load & Verify) chuyển đổi dữ liệu Một cửa cũ 5 năm; REST API & Webhook tích hợp LGSP, C06, PayGov; Tài liệu `docs/06_DAC_TA_TICH_HOP_API.md`.
+
 
 
 

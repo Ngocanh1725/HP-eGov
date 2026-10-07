@@ -8,6 +8,7 @@ use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\ConfigController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\DonViController;
+use App\Controllers\Admin\HeThongController;
 use App\Controllers\Admin\DvhcController;
 use App\Controllers\Admin\EformController;
 use App\Controllers\Admin\MotCuaController;
@@ -311,5 +312,40 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::get('/bao-cao/hai-long', [BaoCaoController::class, 'haiLong'])->name('admin.bao_cao.hai_long');
         Router::get('/bao-cao/truc-tuyen', [BaoCaoController::class, 'trucTuyen'])->name('admin.bao_cao.truc_tuyen');
         Router::get('/bao-cao/lien-thong', [BaoCaoController::class, 'lienThong'])->name('admin.bao_cao.lien_thong');
+
+        // ====================================================================
+        // PH12, PH13, PH15: QUẢN TRỊ & VẬN HÀNH HỆ THỐNG (SYSADMIN)
+        // ====================================================================
+        // 1. PH12: An toàn thông tin, WORM Audit trail & Nhật ký
+        Router::get('/he-thong/audit', [HeThongController::class, 'audit'])->name('admin.he_thong.audit');
+        Router::post('/he-thong/audit/verify-chain', [HeThongController::class, 'verifyChain'])->name('admin.he_thong.verify_chain');
+        Router::get('/he-thong/nhat-ky-dang-nhap', [HeThongController::class, 'nhatKyDangNhap'])->name('admin.he_thong.nhat_ky_dang_nhap');
+        Router::get('/he-thong/nhat-ky-tich-hop', [HeThongController::class, 'nhatKyTichHop'])->name('admin.he_thong.nhat_ky_tich_hop');
+        Router::get('/he-thong/ip-chan', [HeThongController::class, 'ipChan'])->name('admin.he_thong.ip_chan');
+        Router::post('/he-thong/ip-chan/block', [HeThongController::class, 'blockIpAction'])->name('admin.he_thong.block_ip');
+        Router::post('/he-thong/ip-chan/unblock', [HeThongController::class, 'unblockIpAction'])->name('admin.he_thong.unblock_ip');
+        Router::post('/he-thong/ip-chan/clear-rate-limit', [HeThongController::class, 'clearRateLimitAction'])->name('admin.he_thong.clear_rate_limit');
+        Router::get('/he-thong/chinh-sach-bao-mat', [HeThongController::class, 'chinhSachBaoMat'])->name('admin.he_thong.chinh_sach_bao_mat');
+        Router::post('/he-thong/chinh-sach-bao-mat', [HeThongController::class, 'updateChinhSachBaoMat'])->name('admin.he_thong.update_chinh_sach_bao_mat');
+
+        // 2. PH13: Sao lưu & Phục hồi thảm họa (RPO <= 2h, RTO <= 4h)
+        Router::get('/he-thong/sao-luu', [HeThongController::class, 'saoLuu'])->name('admin.he_thong.sao_luu');
+        Router::post('/he-thong/sao-luu/run', [HeThongController::class, 'runBackupAction'])->name('admin.he_thong.run_backup');
+        Router::post('/he-thong/sao-luu/test-restore', [HeThongController::class, 'testRestoreAction'])->name('admin.he_thong.test_restore');
+        Router::get('/he-thong/sao-luu/download/{id:\d+}', [HeThongController::class, 'downloadBackupAction'])->name('admin.he_thong.download_backup');
+
+        // 3. Giám sát sức khỏe hạ tầng thời gian thực
+        Router::get('/he-thong/health', [HeThongController::class, 'health'])->name('admin.he_thong.health');
+
+        // 4. Quản lý sự cố BCP/DRP & Diễn tập
+        Router::get('/he-thong/su-co', [HeThongController::class, 'suCo'])->name('admin.he_thong.su_co');
+        Router::post('/he-thong/su-co/luu', [HeThongController::class, 'luuSuCoAction'])->name('admin.he_thong.luu_su_co');
+        Router::post('/he-thong/su-co/luu-dien-tap', [HeThongController::class, 'luuDienTapAction'])->name('admin.he_thong.luu_dien_tap');
+
+        // 5. PH15: Đào tạo & Chuyển giao công nghệ 4 nhóm cán bộ (§1.4)
+        Router::get('/he-thong/dao-tao', [HeThongController::class, 'daoTao'])->name('admin.he_thong.dao_tao');
+        Router::post('/he-thong/dao-tao/ghi-danh', [HeThongController::class, 'ghiDanhHocVienAction'])->name('admin.he_thong.ghi_danh');
+        Router::post('/he-thong/dao-tao/nhap-diem', [HeThongController::class, 'nhapDiemHocVienAction'])->name('admin.he_thong.nhap_diem');
     });
 });
+

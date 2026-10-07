@@ -255,12 +255,71 @@
             </li>
             <?php endif; ?>
 
+            <?php if (has_role('SYSADMIN')): ?>
+            <li class="sidebar-heading">Quản trị & Vận hành (SYSADMIN)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/health')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/health')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🩺</span>
+                    <span class="sidebar-text">Sức khỏe hệ thống</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/sao-luu')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/sao-luu')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">💾</span>
+                    <span class="sidebar-text">Sao lưu & Phục hồi CSDL</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/audit')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/audit')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🛡️</span>
+                    <span class="sidebar-text">Nhật ký kiểm toán WORM</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/nhat-ky-dang-nhap')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/nhat-ky-dang-nhap')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔐</span>
+                    <span class="sidebar-text">Nhật ký đăng nhập</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/nhat-ky-tich-hop')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/nhat-ky-tich-hop')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🌐</span>
+                    <span class="sidebar-text">Nhật ký tích hợp LGSP</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/ip-chan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/ip-chan')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🚫</span>
+                    <span class="sidebar-text">IP Chặn & Rate Limit</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/chinh-sach-bao-mat')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/chinh-sach-bao-mat')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔒</span>
+                    <span class="sidebar-text">Chính sách bảo mật</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/su-co')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/su-co')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🚨</span>
+                    <span class="sidebar-text">Sự cố & Diễn tập DRP</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/dao-tao')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/dao-tao')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🎓</span>
+                    <span class="sidebar-text">Đào tạo 4 nhóm (§1.4)</span>
+                </a>
+            </li>
+            <?php endif; ?>
+
             <li class="sidebar-item mt-3">
                 <a href="<?= e(url('/admin/dang-xuat')) ?>" class="sidebar-link text-danger">
                     <span class="sidebar-icon">🚪</span>
                     <span class="sidebar-text">Đăng xuất</span>
                 </a>
             </li>
+
         </ul>
     </div>
 </aside>

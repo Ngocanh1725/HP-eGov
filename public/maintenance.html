@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo Bảo trì Hệ thống | HP-eGov TP. Hải Phòng</title>
+    <style>
+        :root {
+            --primary: #0B2E59;
+            --primary-light: #1A4D8C;
+            --accent-gold: #D97706;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+            --bg-color: #F8FAFC;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        .header {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 2px solid #E2E8F0;
+        }
+        .national-emblem {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+        .gov-sub {
+            font-size: 13px;
+            font-weight: 700;
+            color: #DC2626;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .gov-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .main-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(11, 46, 89, 0.1), 0 8px 10px -6px rgba(11, 46, 89, 0.05);
+            max-width: 680px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            margin: 30px 0;
+            border-top: 6px solid var(--accent-gold);
+        }
+        .maintenance-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        h1 {
+            font-size: 24px;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        p.desc {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+        .notice-box {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: left;
+            font-size: 14px;
+            color: #92400E;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #E2E8F0;
+            text-align: left;
+        }
+        .contact-item h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        .contact-item p {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .btn-admin {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--primary-light);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid #CBD5E1;
+            transition: all 0.2s;
+        }
+        .btn-admin:hover {
+            background: #F1F5F9;
+            color: var(--primary);
+        }
+        .footer {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="national-emblem">🇻🇳</div>
+        <div class="gov-sub">ỦY BAN NHÂN DÂN THÀNH PHỐ HẢI PHÒNG</div>
+        <div class="gov-title">HỆ THỐNG MỘT CỬA ĐIỆN TỬ LIÊN THÔNG THÀNH PHỐ (HP-eGov)</div>
+    </div>
+
+    <div class="main-card">
+        <div class="maintenance-icon">🚧</div>
+        <h1>HỆ THỐNG ĐANG TẠM NGỪNG ĐỂ NÂNG CẤP BẢO TRÌ</h1>
+        <p class="desc">
+            Để phục vụ tốt hơn nhu cầu giải quyết thủ tục hành chính và bảo đảm an toàn thông tin theo tiêu chuẩn cấp độ 3,
+            hệ thống HP-eGov đang thực hiện công tác bảo trì kỹ thuật và diễn tập định kỳ theo kế hoạch của UBND Thành phố.
+        </p>
+
+        <div class="notice-box">
+            <strong>⚠️ LƯU Ý DÀNH CHO CÔNG DÂN & DOANH NGHIỆP:</strong><br>
+            • Toàn bộ dữ liệu hồ sơ, kết quả và chữ ký số đã nộp đều được bảo vệ toàn vẹn tuyệt đối.<br>
+            • Thời hạn giải quyết thủ tục hành chính sẽ tự động tạm dừng tính thời gian trong khoảng thời gian bảo trì này theo quy định tại Nghị định 61/2018/NĐ-CP.<br>
+            • Thời gian dự kiến hoàn thành và mở lại hệ thống: <strong>Trong vòng 60 phút</strong>.
+        </div>
+
+        <div class="contact-grid">
+            <div class="contact-item">
+                <h4>Đường dây nóng Hỗ trợ kỹ thuật</h4>
+                <p>📞 0225.3842.xxx (Sở TT&TT)</p>
+            </div>
+            <div class="contact-item">
+                <h4>Tổng đài Thông tin Dịch vụ công</h4>
+                <p>☎️ 1022 - Nhánh 1 (Hải Phòng)</p>
+            </div>
+        </div>
+
+        <div>
+            <a href="/HP-eGov/admin/dang-nhap" class="btn-admin">Dành cho Quản trị viên (SYSADMIN Login) &rarr;</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        Bản quyền &copy; 2026 UBND Thành phố Hải Phòng. Cơ quan vận hành: Sở Thông tin và Truyền thông Hải Phòng.<br>
+        Hạ tầng Trung tâm Dữ liệu đặt tại Trung tâm CNTT&TT Hải Phòng.
+    </div>
+</body>
+</html>
