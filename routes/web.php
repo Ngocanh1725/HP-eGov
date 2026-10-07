@@ -11,6 +11,7 @@ use App\Controllers\Admin\EformController;
 use App\Controllers\Admin\MotCuaController;
 use App\Controllers\Admin\ProfileController;
 use App\Controllers\Admin\RoleController;
+use App\Controllers\Admin\ThuLyController;
 use App\Controllers\Admin\TthcController;
 use App\Controllers\Admin\UiKitController;
 use App\Controllers\Admin\UserController;
@@ -227,5 +228,26 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         // Sổ theo dõi hồ sơ Mẫu 06 TT 01/2018
         Router::get('/mot-cua/so-theo-doi', [MotCuaController::class, 'soTheoDoi'])->name('admin.motcua.soTheoDoi');
         Router::get('/mot-cua/so-theo-doi/export', [MotCuaController::class, 'exportSoTheoDoi'])->name('admin.motcua.exportSoTheoDoi');
+
+        // ====================================================================
+        // PH03: Phân hệ Thụ lý & Phối hợp Liên thông (CHUYEN_VIEN, LD_PHONG)
+        // ====================================================================
+        Router::get('/thu-ly', [ThuLyController::class, 'inbox'])->name('admin.thuly.inbox');
+        Router::get('/thu-ly/danh-sach', [ThuLyController::class, 'inbox']);
+        Router::get('/thu-ly/lien-thong', function () {
+            return Response::redirect(url('/admin/thu-ly', ['tab' => 'phoi_hop']));
+        });
+        Router::get('/thu-ly/{id:\d+}', [ThuLyController::class, 'detail'])->name('admin.thuly.detail');
+        Router::post('/thu-ly/{id:\d+}/phan-cong', [ThuLyController::class, 'phanCong'])->name('admin.thuly.phan_cong');
+        Router::post('/thu-ly/{id:\d+}/chuyen-tiep', [ThuLyController::class, 'chuyenTiep'])->name('admin.thuly.chuyen_tiep');
+        Router::post('/thu-ly/{id:\d+}/tra-lai', [ThuLyController::class, 'traLai'])->name('admin.thuly.tra_lai');
+        Router::post('/thu-ly/{id:\d+}/yeu-cau-bo-sung', [ThuLyController::class, 'yeuCauBoSung'])->name('admin.thuly.yeu_cau_bo_sung');
+        Router::post('/thu-ly/{id:\d+}/tiep-tuc-bo-sung', [ThuLyController::class, 'tiepTucSauBoSung'])->name('admin.thuly.tiep_tuc_bo_sung');
+        Router::post('/thu-ly/{id:\d+}/lay-y-kien', [ThuLyController::class, 'layYKien'])->name('admin.thuly.lay_y_kien');
+        Router::post('/thu-ly/y-kien/{id:\d+}/tra-loi', [ThuLyController::class, 'traLoiYKien'])->name('admin.thuly.tra_loi_y_kien');
+        Router::post('/thu-ly/{id:\d+}/du-thao', [ThuLyController::class, 'luuDuThao'])->name('admin.thuly.luu_du_thao');
+        Router::post('/thu-ly/{id:\d+}/thu-hoi', [ThuLyController::class, 'thuHoi'])->name('admin.thuly.thu_hoi');
+        Router::post('/thu-ly/api/verify-lgsp', [ThuLyController::class, 'apiVerifyLgsp'])->name('admin.thuly.verify_lgsp');
+        Router::post('/thu-ly/api/lgsp-verify', [ThuLyController::class, 'apiVerifyLgsp']);
     });
 });

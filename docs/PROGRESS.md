@@ -20,7 +20,7 @@
 | **6** | **Danh mục dùng chung (MDM) & Quy trình** | MDM ĐVHC 3 cấp, cây tổ chức QCVN 102, TTHC quốc gia mock diff, E-Form designer JSON, BPMN-lite quy trình | **Hoàn thành** | 2026-10-07 | PH09, PH10, `WorkflowEngine.php`, `MdmService.php`, `tests/Unit/WorkflowValidationTest.php` |
 | **7** | **Cổng Dịch vụ công (Công dân)** | Wizard 4 bước, Auto-fill VNeID, Kho số hóa công dân, QCVN 102 chống trùng, QR webcam, SIPAS | **Hoàn thành** | 2026-10-07 | PH01, `NopHoSoController.php`, `MaHoSoGenerator.php`, `FileUploadSecurityService.php`, `PortalDvcTest.php` |
 | **8** | **Bộ phận Một cửa (Cán bộ - PH02)** | Bàn làm việc 4 thẻ KPI, quét QR CCCD chip C06, số hóa 4 bước NĐ 107/2021, ký số OpenSSL, SlaEngine trừ ngày nghỉ, in Giấy hẹn Mẫu 01, Mẫu 02 bổ sung, Mẫu 03 từ chối, trả kết quả VNPost, Sổ theo dõi Mẫu 06 A4 ngang | **Hoàn thành** | 2026-10-07 | PH02, `MotCuaController.php`, `SlaEngine.php`, `SoHoaService.php`, `ChuKySoService.php`, `tests/Unit/MotCuaTest.php` |
-| **9** | Workflow Engine · Thụ lý & Liên thông | Phân công, thẩm định, đối soát LGSP/C06, liên thông ngang/dọc đa cơ quan | *Chưa làm* | - | Kế hoạch: PH03, `WorkflowEngine.php`, `LienThongLogisticsTest.php` |
+| **9** | **Workflow Engine · Thụ lý & Liên thông** | Phân công, thẩm định, đối soát LGSP/C06/Đất đai/Đăng kiểm, liên thông ngang/dọc đa cơ quan, Hộp việc 6 tabs, SLA ĐỎ khóa chuyển bước, đối soát SHA-256 | **Hoàn thành** | 2026-10-07 | PH03, `WorkflowEngine.php`, `ThuLyController.php`, `tests/Integration/LienThongLogisticsTest.php` |
 | **10** | Phê duyệt, Ký số & Văn thư số | OpenSSL demo, SmartCA mock, ký số hàng loạt, cấp số sổ phát hành, đóng dấu số | *Chưa làm* | - | Kế hoạch: PH04, PH05, `ChuKySoService.php`, `VanThuService.php` |
 | **11** | SLA Engine & Thông báo đa kênh | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi, SMS/Zalo mock | *Chưa làm* | - | Kế hoạch: PH06, PH07, `cron/sla_scan.php`, `cron/notify_dispatch.php` |
 | **12** | Dashboard chỉ đạo điều hành & Báo cáo | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện, báo cáo TT 01 | *Chưa làm* | - | Kế hoạch: PH08, `app/Controllers/Admin/DashboardController.php` |
@@ -394,6 +394,57 @@
   - `app/Views/partials/sidebar.php`, `routes/web.php`
   - `tests/Unit/MotCuaTest.php`, `tests/Integration/test_motcua_http.php`
 - **Kế hoạch cho Phiên 9:**
-  - Thực hiện **Phiên 9/16 – Phân hệ Thụ lý & Liên thông (PH03)**: Bàn làm việc Chuyên viên thụ lý, phân công thụ lý (thủ công / tự động vòng tròn cân bằng tải), thẩm định hồ sơ, phối hợp liên thông ngang (Sở KH&ĐT ↔ Sở XD ↔ Sở TN&MT) và liên thông dọc (UBND Quận/Huyện ↔ UBND Xã/Phường), biên bản thẩm định, dự thảo kết quả TTHC.
+  - Hoàn thành theo đúng kế hoạch.
+
+### PHIÊN 9: WORKFLOW ENGINE · THỤ LÝ & LIÊN THÔNG (PH03)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Động cơ Quy trình trung tâm (`WorkflowEngine`):**
+     - Đóng vai trò là Service duy nhất điều phối toàn bộ chuỗi trạng thái luân chuyển hồ sơ trong hệ thống (State Machine theo BPMN-lite).
+     - Khóa bi quan (`SELECT ... FOR UPDATE`) trong Database Transaction: Bảo đảm xử lý tuần tự, chống triệt để tình trạng Race Condition (2 người cùng thao tác một hồ sơ tại cùng một thời điểm).
+     - Kiểm soát nghiêm ngặt quy tắc SLA ĐỎ: Chặn đứng thao tác chuyển bước thông thường nếu hồ sơ đã quá hạn (`sla_mau === 'DO'`), bắt buộc Lãnh đạo cơ quan phải ban hành và ký số **Phiếu xin lỗi và hẹn lại ngày trả kết quả (Mẫu số 04 NĐ 61/2018/NĐ-CP)** trong bảng `van_ban_xin_loi` trước khi được tiếp tục chuyển tiếp.
+     - Cơ chế đối soát toàn vẹn tệp đính kèm (`verifyFileIntegrity`): Quét và đối chiếu mã băm SHA-256 của toàn bộ tệp tin hồ sơ lưu trên ổ đĩa với CSDL trước khi luân chuyển, phát hiện ngay lập tức mọi hành vi sửa đổi trái phép.
+     - Cơ chế luân chuyển liên thông đa cơ quan: Tự động cập nhật `don_vi_hien_tai_id`, reset chuyên viên thụ lý để Lãnh đạo đơn vị tiếp nhận phân công; đơn vị gửi chuyển sang chế độ theo dõi chỉ đọc (`isReadOnly`).
+     - Bộ hành động quy trình toàn diện: `chuyenTiep`, `traLai`, `yeuCauBoSung` (tạm dừng tính SLA), `tiepTucSauBoSung` (khôi phục SLA), `phanCong` (phân công chuyên viên), `layYKien` (yêu cầu phối hợp), `traLoiYKien` (phản hồi ý kiến phối hợp), `thuHoi` (thu hồi trước khi trạm kế tiếp thụ lý).
+  2. **Hộp việc (Inbox) cán bộ dùng chung (`/admin/thu-ly`):**
+     - Thiết kế giao diện Dashboard theo chuẩn Design System với 6 tabs phân loại: *Chờ xử lý, Đang thụ lý, Đã chuyển (theo dõi chỉ đọc), Phối hợp liên ngành, Sắp quá hạn (Vàng), Quá hạn (Đỏ)*.
+     - Huy hiệu đếm số lượng thời gian thực cho từng tab, bộ lọc theo TTHC, tìm kiếm theo mã/tên người nộp, sắp xếp tối ưu theo thời hạn SLA.
+  3. **Nghiệp vụ Lãnh đạo phòng (LD_PHONG):**
+     - Phân công / chuyển phân công chuyên viên thụ lý có hiển thị số lượng hồ sơ đang xử lý để Lãnh đạo cân bằng tải công việc.
+     - Điều chỉnh ý kiến chỉ đạo thụ lý trực tiếp trên giao diện.
+  4. **Màn hình Thụ lý chi tiết của Chuyên viên (`/admin/thu-ly/{id}`):**
+     - Hiển thị thông tin hồ sơ, E-form người nộp và tài liệu đính kèm (xem PDF trực tiếp trong modal).
+     - **Đối soát dữ liệu số qua LGSP Hải Phòng (`LgspGatewayMock`):**
+       + C06 CSDL Quốc gia về Dân cư: Xác thực số CCCD, họ tên, thường trú.
+       + CSDL Đất đai (VILIS): Đối soát số thửa, số tờ bản đồ, chủ sử dụng, diện tích m2, mục đích sử dụng, quy hoạch chi tiết 1/500.
+       + CSDL Đăng kiểm GTVT: Đối soát biển số xe, chủ xe, hạn kiểm định an toàn kỹ thuật, loại xe, tải trọng.
+     - Soạn thảo và lưu trữ dự thảo tờ trình / biên bản thẩm định / kết quả TTHC từ mẫu có biến.
+     - Gửi yêu cầu lấy ý kiến phối hợp liên phòng / liên sở (chọn đơn vị, nội dung, hạn trả lời) và quản lý phản hồi ý kiến.
+     - Hỗ trợ thao tác yêu cầu bổ sung giấy tờ và chuyển trình duyệt Lãnh đạo.
+  5. **Hộp việc "Phối hợp liên ngành":**
+     - Tiếp nhận các yêu cầu lấy ý kiến từ cơ quan khác gửi đến.
+     - Cho phép đơn vị phối hợp phản hồi ý kiến chuyên môn và đính kèm văn bản trả lời.
+  6. **Dịch vụ Thông báo đa kênh (`ThongBaoService`):**
+     - Phát thông báo in-app tức thời cho cán bộ liên quan và đẩy tin nhắn SMS Brandname / Zalo ZNS vào hàng đợi.
+  7. **Kiểm thử tích hợp tự động (`tests/Integration/LienThongLogisticsTest.php`):**
+     - Kịch bản mô phỏng toàn trình hồ sơ dự án Logistics cảng biển Lạch Huyện đi qua 4 cơ quan:
+       + Trạm 1: UBND Quận Hồng Bàng tiếp nhận hồ sơ ban đầu.
+       + Trạm 2: Chuyển liên thông sang Sở Xây dựng thẩm định quy hoạch.
+       + Trạm 3: Sở Xây dựng gửi yêu cầu lấy ý kiến phối hợp sang Sở TN&MT thẩm định đánh giá tác động môi trường (ĐTM); Sở TN&MT phản hồi ý kiến chuyên môn.
+       + Trạm 4: Sở KH&ĐT tổng hợp hồ sơ dự án đầu tư và kính trình Lãnh đạo UBND Thành phố phê duyệt.
+     - Xác minh tự động: Không xảy ra Deadlock trong Transaction, trạng thái và đơn vị chuyển đổi chính xác, mã băm SHA-256 của tệp đính kèm toàn vẹn 100% qua 4 cơ quan, nhật ký luân chuyển WORM ghi vết đầy đủ.
+     - Mở rộng kiểm thử: SLA ĐỎ bị khóa chuyển bước khi thiếu Mẫu 04; phát hiện tức thì tệp tin bị can thiệp trái phép trên đĩa; nghiệp vụ thu hồi hồ sơ hoàn trả về đúng đơn vị ban đầu.
+  8. **Kết quả kiểm thử toàn hệ thống:**
+     - Kiểm thử Unit & Integration: **50/50 tests passed 100%** (`tests/run.php`).
+     - Kiểm thử HTTP Web (`tests/Integration/test_thu_ly_web_http.php`): **6/6 bước HTTP đạt 100%** (CSRF, Đăng nhập, Hộp việc 6 tabs HTTP 200, Chi tiết thụ lý HTTP 200, API LGSP Đất đai & Đăng kiểm).
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/WorkflowEngine.php`, `app/Services/ThongBaoService.php`
+  - `app/Integrations/Mock/LgspGatewayMock.php`
+  - `app/Controllers/Admin/ThuLyController.php`
+  - `app/Views/admin/thu_ly/inbox.php`, `detail.php`
+  - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Core/Request.php`
+  - `tests/run.php`, `tests/Integration/LienThongLogisticsTest.php`, `tests/Integration/test_thu_ly_web_http.php`
+- **Kế hoạch cho Phiên 10:**
+  - Thực hiện **Phiên 10/16 – Phê duyệt, Ký số & Văn thư số (PH04, PH05)**: Luồng phê duyệt của Lãnh đạo cơ quan (LD_SO, LD_UBND), ký số OpenSSL demo & SmartCA mock, ký số hàng loạt (Batch Signing), phân hệ Văn thư số (cấp số văn bản tự động theo sổ phát hành, đóng dấu số SVG, trả kết quả điện tử sang Một cửa và Cổng DVC).
 
 

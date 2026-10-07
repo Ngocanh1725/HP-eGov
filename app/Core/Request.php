@@ -200,6 +200,14 @@ class Request
     }
 
     /**
+     * Alias thuận tiện cho input()
+     */
+    public function get(?string $key = null, mixed $default = null): mixed
+    {
+        return $this->input($key, $default);
+    }
+
+    /**
      * Lấy giá trị từ query string (GET)
      */
     public function query(?string $key = null, mixed $default = null): mixed

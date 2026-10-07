@@ -58,15 +58,15 @@
                 </a>
             </li>
 
-            <li class="sidebar-heading">Thụ lý & Liên thông</li>
+            <li class="sidebar-heading">Thụ lý & Liên thông (PH03)</li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/thu-ly/danh-sach')) ?>" class="sidebar-link">
+                <a href="<?= e(url('/admin/thu-ly')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/thu-ly') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'tab=phoi_hop')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">📂</span>
-                    <span class="sidebar-text">Hồ sơ thẩm định</span>
+                    <span class="sidebar-text">Hộp việc Thụ lý</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/thu-ly/lien-thong')) ?>" class="sidebar-link">
+                <a href="<?= e(url('/admin/thu-ly?tab=phoi_hop')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', 'tab=phoi_hop')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">🔄</span>
                     <span class="sidebar-text">Phối hợp liên thông</span>
                 </a>

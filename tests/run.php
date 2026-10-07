@@ -30,25 +30,34 @@ class TestRunner
     private static array $failures = [];
     private static string $currentTest = '';
 
-    public static function run(string $testDir): void
+    public static function run(string|array $testDirs): void
     {
         $startTime = microtime(true);
-        self::printHeader("KHỞI CHẠY KIỂM THỬ HỆ THỐNG HP-eGov (LÕI MVC PHIÊN 3)");
+        self::printHeader("KHỞI CHẠY KIỂM THỬ HỆ THỐNG HP-eGov (UNIT & INTEGRATION)");
 
-        $files = glob($testDir . '/*Test.php');
-        if (empty($files)) {
-            $files = glob($testDir . '/**/*Test.php');
+        $dirs = is_array($testDirs) ? $testDirs : [$testDirs];
+        $files = [];
+        foreach ($dirs as $dir) {
+            $matched = glob($dir . '/*Test.php') ?: [];
+            $files = array_merge($files, $matched);
         }
 
         foreach ($files as $file) {
-            $className = 'Tests\\Unit\\' . basename($file, '.php');
+            $content = file_get_contents($file);
+            $className = '';
+            if (preg_match('/namespace\s+([^;]+);/', $content, $m)) {
+                $className = trim($m[1]) . '\\' . basename($file, '.php');
+            } else {
+                $className = 'Tests\\Unit\\' . basename($file, '.php');
+            }
+
             require_once $file;
 
             if (class_exists($className)) {
                 $instance = new $className();
                 $methods = get_class_methods($instance);
 
-                self::printSuite(basename($file));
+                self::printSuite(basename($file) . " ({$className})");
 
                 foreach ($methods as $method) {
                     if (str_starts_with($method, 'test')) {
@@ -198,5 +207,5 @@ class TestRunner
     }
 }
 
-// Chạy các bài test trong thư mục tests/Unit
-TestRunner::run(__DIR__ . '/Unit');
+// Chạy các bài test trong thư mục tests/Unit và tests/Integration
+TestRunner::run([__DIR__ . '/Unit', __DIR__ . '/Integration']);
