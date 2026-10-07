@@ -93,6 +93,14 @@ class View
     }
 
     /**
+     * Bắt đầu một khối Section (alias của startSection)
+     */
+    public function section(string $name): void
+    {
+        $this->startSection($name);
+    }
+
+    /**
      * Bắt đầu một khối Section
      */
     public function startSection(string $name): void

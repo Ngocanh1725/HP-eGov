@@ -111,8 +111,8 @@ class MotCuaTest
      */
     public function testSoHoaNghiDinh107(): void
     {
-        // 1. Kiểm tra cặp khóa và ký số OpenSSL của cán bộ
-        $userId = 1;
+        // 1. Kiểm tra cặp khóa và ký số OpenSSL của cán bộ Một cửa (User 2: motcua.hongbang)
+        $userId = 2;
         $contentDemo = "NỘI DUNG TÀI LIỆU SCAN ĐẦU VÀO TTHC - HẢI PHÒNG";
         $tempFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'test_scan_' . uniqid() . '.pdf';
         file_put_contents($tempFile, $contentDemo);

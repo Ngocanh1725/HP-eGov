@@ -21,7 +21,7 @@
 | **7** | **Cổng Dịch vụ công (Công dân)** | Wizard 4 bước, Auto-fill VNeID, Kho số hóa công dân, QCVN 102 chống trùng, QR webcam, SIPAS | **Hoàn thành** | 2026-10-07 | PH01, `NopHoSoController.php`, `MaHoSoGenerator.php`, `FileUploadSecurityService.php`, `PortalDvcTest.php` |
 | **8** | **Bộ phận Một cửa (Cán bộ - PH02)** | Bàn làm việc 4 thẻ KPI, quét QR CCCD chip C06, số hóa 4 bước NĐ 107/2021, ký số OpenSSL, SlaEngine trừ ngày nghỉ, in Giấy hẹn Mẫu 01, Mẫu 02 bổ sung, Mẫu 03 từ chối, trả kết quả VNPost, Sổ theo dõi Mẫu 06 A4 ngang | **Hoàn thành** | 2026-10-07 | PH02, `MotCuaController.php`, `SlaEngine.php`, `SoHoaService.php`, `ChuKySoService.php`, `tests/Unit/MotCuaTest.php` |
 | **9** | **Workflow Engine · Thụ lý & Liên thông** | Phân công, thẩm định, đối soát LGSP/C06/Đất đai/Đăng kiểm, liên thông ngang/dọc đa cơ quan, Hộp việc 6 tabs, SLA ĐỎ khóa chuyển bước, đối soát SHA-256 | **Hoàn thành** | 2026-10-07 | PH03, `WorkflowEngine.php`, `ThuLyController.php`, `tests/Integration/LienThongLogisticsTest.php` |
-| **10** | Phê duyệt, Ký số & Văn thư số | OpenSSL demo, SmartCA mock, ký số hàng loạt, cấp số sổ phát hành, đóng dấu số | *Chưa làm* | - | Kế hoạch: PH04, PH05, `ChuKySoService.php`, `VanThuService.php` |
+| **10** | **Phê duyệt, Ký số & Văn thư số** | OpenSSL SHA256withRSA, SmartCA mock, ký duyệt LD_PHONG, ký phát hành & batch signing LD_CO_QUAN, hủy logic DA_HUY, Văn thư số cấp số không trùng, đóng dấu số tổ chức, đẩy kho công dân | **Hoàn thành** | 2026-10-07 | PH04, PH05, `ChuKySoService.php`, `VanThuService.php`, `PheDuyetController.php`, `VanThuController.php`, `PheDuyetKySoVanThuTest.php` |
 | **11** | SLA Engine & Thông báo đa kênh | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi, SMS/Zalo mock | *Chưa làm* | - | Kế hoạch: PH06, PH07, `cron/sla_scan.php`, `cron/notify_dispatch.php` |
 | **12** | Dashboard chỉ đạo điều hành & Báo cáo | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện, báo cáo TT 01 | *Chưa làm* | - | Kế hoạch: PH08, `app/Controllers/Admin/DashboardController.php` |
 | **13** | Quản trị & Vận hành hệ thống | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | *Chưa làm* | - | Kế hoạch: PH12, PH13, PH15, `docs/05_QUY_CHE_VAN_HANH.md` |
@@ -445,6 +445,66 @@
   - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Core/Request.php`
   - `tests/run.php`, `tests/Integration/LienThongLogisticsTest.php`, `tests/Integration/test_thu_ly_web_http.php`
 - **Kế hoạch cho Phiên 10:**
-  - Thực hiện **Phiên 10/16 – Phê duyệt, Ký số & Văn thư số (PH04, PH05)**: Luồng phê duyệt của Lãnh đạo cơ quan (LD_SO, LD_UBND), ký số OpenSSL demo & SmartCA mock, ký số hàng loạt (Batch Signing), phân hệ Văn thư số (cấp số văn bản tự động theo sổ phát hành, đóng dấu số SVG, trả kết quả điện tử sang Một cửa và Cổng DVC).
+  - Hoàn thành theo đúng kế hoạch.
+
+### PHIÊN 10: PHÊ DUYỆT, KÝ SỐ & VĂN THƯ SỐ (PH04, PH05)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **Hạ tầng Chữ ký số & Nhà cung cấp SignatureProvider (OpenSSL Thật):**
+     - Xây dựng hợp đồng `SignatureProviderInterface` theo Adapter Pattern cho phép hoán chuyển liền mạch giữa OpenSSL local và SmartCA/USB-Token/Ban Cơ yếu Chính phủ.
+     - Triển khai `OpenSslSignatureProvider`: Ký số chuẩn SHA256withRSA, sinh chữ ký dạng nhị phân / base64, xác thực chữ ký số bằng Public Key chứng thư số X.509. Tự động định vị file cấu hình OpenSSL (`openssl.cnf`) trên môi trường Windows / XAMPP.
+     - Triển khai `SmartCaProviderMock`: Mô phỏng quy trình xác thực mã PIN / OTP chữ ký số từ xa (SmartCA), ghi nhật ký tích hợp vào `nhat_ky_tich_hop`.
+     - Lệnh CLI `C:\xampp\php\php.exe app/cli.php keys:generate`: Tự động sinh cặp khóa RSA 2048-bit và chứng thư số X.509 tự ký demo cho toàn bộ người có quyền ký (`LD_PHONG`, `LD_CO_QUAN`, `VAN_THU`, `CB_MOT_CUA`) và chứng thư tổ chức (con dấu số) cho tất cả các cơ quan, đơn vị; lưu trữ an toàn ngoài thư mục public tại `storage/keys/` (`user_{id}.key`, `user_{id}.crt`, `org_{id}.key`, `org_{id}.crt`); tự động đồng bộ siêu dữ liệu vào bảng CSDL `chung_thu_so` (serial, hiệu lực 1 năm, nhà cung cấp).
+     - Hoàn thiện `ChuKySoService`:
+       + Ký tệp: Tính mã băm SHA-256 tệp gốc → `openssl_sign` với Private Key → lưu chữ ký số (`.sig`) song hành cùng tệp gốc → ghi nhận lịch sử vào bảng `chu_ky_so` → chèn khối thông tin con dấu số điện tử "Đã ký số bởi ... lúc ... - Serial ...".
+       + Kiểm soát thẩm quyền ký số (Tuân thủ nghiêm ngặt **Rule #6 & #12**): Tuyệt đối ngăn chặn tài khoản quản trị hệ thống `SYSADMIN` thực hiện ký số nghiệp vụ (ném ngoại lệ `403 Forbidden`); kiểm tra thẩm quyền vai trò tương ứng theo đúng vị trí công tác.
+       + Xác thực chữ ký số: Kiểm tra tính toàn vẹn của tệp tin, hiệu lực thời gian của chứng thư số và đối soát thẩm quyền người ký. Phát hiện tức thì mọi hành vi thay đổi dù chỉ 1 byte nội dung.
+       + Ký số hàng loạt (Batch Signing): Xử lý ký đồng loạt nhiều hồ sơ với 1 lần xác thực mã PIN SmartCA duy nhất, thời gian xử lý trung bình < 2 giây/hồ sơ, báo cáo chi tiết kết quả từng hồ sơ.
+  2. **Nghiệp vụ Phê duyệt Bước 1 của Lãnh đạo Phòng (`LD_PHONG`):**
+     - Hộp việc duyệt bước 1 (`/admin/phe-duyet/phong`): Danh sách hồ sơ chuyên viên đã thẩm định trình duyệt.
+     - Màn hình xem chi tiết dự thảo (`/admin/phe-duyet/phong/{id}`): Xem nội dung E-Form, thành phần hồ sơ, dự thảo kết quả giải quyết.
+     - Thao tác: Ký số duyệt dự thảo (kích hoạt modal PIN SmartCA, gọi `ChuKySoService`, chuyển trạng thái `CHO_PHAT_HANH`) hoặc Trả lại hồ sơ yêu cầu chuyên viên chỉnh sửa kèm ý kiến chỉ đạo.
+  3. **Nghiệp vụ Phê duyệt & Ký số Phát hành của Lãnh đạo Cơ quan (`LD_CO_QUAN`):**
+     - Hộp việc chờ phát hành (`/admin/phe-duyet/co-quan`): Danh sách hồ sơ đã qua phê duyệt bước 1, sẵn sàng ký số phát hành.
+     - Xem chi tiết hồ sơ & tờ trình (`/admin/phe-duyet/co-quan/{id}`): Kiểm tra toàn bộ căn cứ pháp lý và dự thảo.
+     - Ký số phát hành văn bản: Ký số điện tử bằng khóa cá nhân của Lãnh đạo, chuyển trạng thái hồ sơ sang `CHO_DONG_DAU` để Văn thư xử lý.
+     - **Ký số hàng loạt (Batch Signing):** Lãnh đạo có thể tích chọn nhiều hồ sơ trên danh sách, mở modal xác thực PIN một lần duy nhất, hệ thống tự động xử lý ký số tuần tự kèm thanh tiến trình realtime và bảng báo cáo kết quả chi tiết từng hồ sơ (đạt tiêu chí thời gian < 2 giây/lần ký).
+     - **Phê duyệt đề xuất Hủy hồ sơ (`/admin/phe-duyet/de-xuat-huy`):** Tiếp nhận các đề xuất hủy hồ sơ từ Một cửa / Thụ lý kèm căn cứ pháp lý và biên bản; Lãnh đạo phê duyệt hủy chuyển trạng thái logic `DA_HUY` (nghiêm cấm xóa vật lý theo Rule #6).
+     - Giao diện tối ưu hoàn toàn cho thiết bị di động (Mobile Responsive), hỗ trợ Lãnh đạo ký số phê duyệt từ xa mọi lúc mọi nơi.
+  4. **Nghiệp vụ Phân hệ Văn thư số (`VAN_THU` - PH05):**
+     - Xây dựng `VanThuService` và Controller `VanThuController`:
+       + **Quản lý Sổ văn bản (`/admin/van-thu/so-van-ban`):** Quản lý sổ văn bản đi/đến theo từng năm, theo từng loại văn bản (Quyết định, Giấy phép, Công văn...), cấu hình số bắt đầu, mẫu ký hiệu văn bản.
+       + **Cấp số & Ký hiệu tự động không trùng lặp:** Sử dụng cơ chế khóa bi quan trong Transaction (`SELECT ... FOR UPDATE`), bảo đảm an toàn tuyệt đối chống tranh chấp dữ liệu khi nhiều văn thư cấp số đồng thời.
+       + **Đóng dấu số cơ quan (Ký số tổ chức):** Ký số bằng chứng thư số tổ chức (con dấu pháp nhân điện tử), gán số văn bản, ký hiệu chính thức và ngày ban hành vào văn bản kết quả (`/admin/van-thu/dong-dau/{id}`).
+       + **Hoàn thành hồ sơ & Trả kết quả điện tử:** Tự động chuyển trạng thái hồ sơ thành `HOAN_THANH`, tạo bản ghi kết quả điện tử đẩy vào **Kho dữ liệu công dân (`kho_du_lieu_cong_dan`)** với thời hạn hiệu lực 5 năm và nguồn `CAP_MOI_DVC`, đồng thời phát thông báo đa kênh (SMS, Zalo, thông báo Portal) cho người dân đến nhận hoặc tải kết quả điện tử.
+       + **Quản lý công văn liên quan (`/admin/van-thu/cong-van`):** Quản lý văn bản đến/đi gắn với mã hồ sơ hành chính.
+       + **Tra cứu, in sổ & xuất CSV:** Tìm kiếm sổ văn bản, in ấn chuẩn A4 ngang và xuất dữ liệu CSV định dạng UTF-8 có BOM tương thích Microsoft Excel.
+  5. **Trang Tra cứu & Kiểm tra Chữ ký số Công khai (`/kiem-tra-chu-ky`):**
+     - Cung cấp cổng xác thực công khai cho tổ chức, công dân và đối tác kiểm tra tính pháp lý của văn bản điện tử do thành phố ban hành.
+     - Tra cứu thông tin chữ ký số theo Mã hồ sơ hành chính.
+     - Tải tệp tài liệu và tệp chữ ký rời (`.sig`) để hệ thống tính toán mã băm SHA-256 đối soát với Public Key chứng thư số trong CSDL, trả về kết quả Hợp lệ / Không hợp lệ chi tiết (Tên người ký, tổ chức, số serial, thời gian ký, thuật toán băm).
+  6. **Kiểm thử tự động & Tích hợp:**
+     - **Tập kiểm thử tích hợp chuyên sâu (`tests/Integration/PheDuyetKySoVanThuTest.php`):**
+       + `testTamperingDetectedAfterSigning`: Ký số tệp tin hợp lệ, cố tình sửa đổi 1 byte nội dung tệp tin giả lập tấn công can thiệp dữ liệu → Hàm kiểm tra xác thực trả về `false` (phát hiện giả mạo thành công 100%).
+       + `testUnauthorizedOrSysadminBlockedFromSigning`: Xác minh tài khoản `SYSADMIN` hoặc người không đúng thẩm quyền bị chặn 100% khi cố tình thực hiện ký số (Rule #6 & #12).
+       + `testConcurrentRegistryBookNumberingNoDuplicates`: Mô phỏng 15 giao dịch cấp số văn bản đồng thời bằng cơ chế khóa bi quan → 100% số được cấp tăng liên tục từ 101 đến 115, không trùng lặp, không bị nhảy cóc.
+       + `testBatchSigningPerformanceAndIntegrity`: Thực hiện ký số hàng loạt 20 hồ sơ với 1 lần PIN → Đạt tỷ lệ thành công 20/20, thời gian ký trung bình đạt tiêu chuẩn < 2 giây/hồ sơ.
+       + `testEndToEndFiveStepsWorkflow`: Mô phỏng luồng 5 bước end-to-end từ lúc công dân nộp hồ sơ → Một cửa tiếp nhận → Chuyên viên thụ lý dự thảo → Lãnh đạo phòng duyệt bước 1 → Lãnh đạo cơ quan ký số phát hành → Văn thư cấp số, đóng dấu số cơ quan → Hồ sơ `HOAN_THANH` → Kết quả tự động đẩy vào `kho_du_lieu_cong_dan` với chữ ký số OpenSSL hợp lệ 100%.
+     - **Kiểm thử HTTP Web (`tests/Integration/test_phe_duyet_van_thu_http.php`):**
+       + Kiểm tra truy cập trang công khai `/kiem-tra-chu-ky` trả về mã HTTP 200 OK.
+       + Kiểm tra bảo mật truy cập trái phép vào các trang Lãnh đạo và Văn thư khi chưa đăng nhập đều bị chuyển hướng 302 về trang đăng nhập.
+     - **Toàn bộ Test Suite:** **55/55 tests passed 100%** (`tests/run.php`).
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Integrations/Contracts/SignatureProviderInterface.php`, `app/Integrations/Mock/OpenSslSignatureProvider.php`, `app/Integrations/Mock/SmartCaProviderMock.php`
+  - `app/Services/ChuKySoService.php`, `app/Services/VanThuService.php`
+  - `app/Controllers/Admin/PheDuyetController.php`, `app/Controllers/Admin/VanThuController.php`, `app/Controllers/Portal/KiemTraChuKyController.php`
+  - `app/Views/admin/phe_duyet/phong.php`, `chi_tiet_phong.php`, `co_quan.php`, `chi_tiet_co_quan.php`, `danh_sach_huy.php`
+  - `app/Views/admin/van_thu/index.php`, `dong_dau.php`, `so_van_ban.php`, `cong_van.php`
+  - `app/Views/portal/kiem_tra_chu_ky.php`, `app/Views/partials/sidebar.php`, `app/Views/partials/header.php`, `routes/web.php`, `app/Core/View.php`
+  - `app/cli.php`, `tests/Integration/PheDuyetKySoVanThuTest.php`, `tests/Integration/test_phe_duyet_van_thu_http.php`, `tests/Unit/MotCuaTest.php`
+- **Kế hoạch cho Phiên 11:**
+  - Thực hiện **Phiên 11/16 – SLA Engine & Thông báo đa kênh (PH06, PH07)**: Hoàn thiện `SlaEngine` với unit test đầy đủ các trường hợp biên; xây dựng script định kỳ `cron/sla_scan.php` (tích hợp Windows Task Scheduler); quy trình phát hành tự động Văn bản xin lỗi Mẫu số 04 theo NĐ 61/2018/NĐ-CP; hàng đợi thông báo Outbox `hang_doi_thong_bao`, worker `cron/notify_dispatch.php`, quản lý mẫu thông báo đa kênh (In-app, SMS Brandname, Zalo ZNS).
+
+
 
 

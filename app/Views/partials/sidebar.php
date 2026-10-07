@@ -72,17 +72,37 @@
                 </a>
             </li>
 
-            <li class="sidebar-heading">Phê duyệt & Văn thư</li>
+            <li class="sidebar-heading">Phê duyệt & Ký số (PH04)</li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/phe-duyet')) ?>" class="sidebar-link">
-                    <span class="sidebar-icon">✍</span>
-                    <span class="sidebar-text">Trình ký & Phê duyệt</span>
+                <a href="<?= e(url('/admin/phe-duyet/phong')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/phe-duyet/phong')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-text">Duyệt bước 1 (Phòng)</span>
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="<?= e(url('/admin/van-thu')) ?>" class="sidebar-link">
+                <a href="<?= e(url('/admin/phe-duyet/co-quan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/phe-duyet/co-quan')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">✍️</span>
+                    <span class="sidebar-text">Ký phát hành (Cơ quan)</span>
+                </a>
+            </li>
+
+            <li class="sidebar-heading">Văn thư số (PH05)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/van-thu')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/van-thu') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'so-van-ban') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'cong-van')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔏</span>
+                    <span class="sidebar-text">Đóng dấu phát hành</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/van-thu/so-van-ban')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/van-thu/so-van-ban')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📖</span>
+                    <span class="sidebar-text">Sổ văn bản điện tử</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/van-thu/cong-van')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/van-thu/cong-van')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">📑</span>
-                    <span class="sidebar-text">Văn thư & Đóng dấu</span>
+                    <span class="sidebar-text">Công văn đến / đi</span>
                 </a>
             </li>
 

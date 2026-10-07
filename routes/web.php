@@ -9,12 +9,14 @@ use App\Controllers\Admin\DonViController;
 use App\Controllers\Admin\DvhcController;
 use App\Controllers\Admin\EformController;
 use App\Controllers\Admin\MotCuaController;
+use App\Controllers\Admin\PheDuyetController;
 use App\Controllers\Admin\ProfileController;
 use App\Controllers\Admin\RoleController;
 use App\Controllers\Admin\ThuLyController;
 use App\Controllers\Admin\TthcController;
 use App\Controllers\Admin\UiKitController;
 use App\Controllers\Admin\UserController;
+use App\Controllers\Admin\VanThuController;
 use App\Controllers\Admin\WorkflowController;
 use App\Controllers\CaptchaController;
 use App\Controllers\Portal\AuthController as PortalAuthController;
@@ -22,6 +24,7 @@ use App\Controllers\Portal\DvcController;
 use App\Controllers\Portal\HelpController;
 use App\Controllers\Portal\HomeController;
 use App\Controllers\Portal\HoSoCaNhanController;
+use App\Controllers\Portal\KiemTraChuKyController;
 use App\Controllers\Portal\NopHoSoController;
 use App\Controllers\Portal\NotificationPortalController;
 use App\Controllers\Portal\TraCuuController;
@@ -41,6 +44,8 @@ Router::get('/thu-tuc-hanh-chinh', [DvcController::class, 'index']);
 Router::get('/dvc/thu-tuc/{ma}', [DvcController::class, 'detail'])->name('portal.dvc.detail');
 
 Router::get('/tra-cuu', [TraCuuController::class, 'index'])->name('portal.tra_cuu');
+Router::get('/kiem-tra-chu-ky', [KiemTraChuKyController::class, 'index'])->name('portal.kiem_tra_chu_ky');
+Router::post('/kiem-tra-chu-ky/verify-file', [KiemTraChuKyController::class, 'verifyFile'])->name('portal.kiem_tra_chu_ky.verify_file');
 Router::get('/tro-giup', [HelpController::class, 'index'])->name('portal.help');
 Router::get('/ho-tro', [HelpController::class, 'index']);
 Router::get('/nop-ho-so', function () {
@@ -249,5 +254,31 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::post('/thu-ly/{id:\d+}/thu-hoi', [ThuLyController::class, 'thuHoi'])->name('admin.thuly.thu_hoi');
         Router::post('/thu-ly/api/verify-lgsp', [ThuLyController::class, 'apiVerifyLgsp'])->name('admin.thuly.verify_lgsp');
         Router::post('/thu-ly/api/lgsp-verify', [ThuLyController::class, 'apiVerifyLgsp']);
+
+        // ====================================================================
+        // PH04: Phê duyệt & Ký số điện tử (LD_PHONG, LD_CO_QUAN)
+        // ====================================================================
+        Router::get('/phe-duyet/phong', [PheDuyetController::class, 'indexPhong'])->name('admin.phe_duyet.phong');
+        Router::get('/phe-duyet/phong/{id:\d+}', [PheDuyetController::class, 'chiTietPhong'])->name('admin.phe_duyet.chi_tiet_phong');
+        Router::post('/phe-duyet/phong/{id:\d+}/ky-so', [PheDuyetController::class, 'kySoPhong'])->name('admin.phe_duyet.ky_so_phong');
+        Router::post('/phe-duyet/phong/{id:\d+}/tra-lai', [PheDuyetController::class, 'traLaiPhong'])->name('admin.phe_duyet.tra_lai_phong');
+
+        Router::get('/phe-duyet/co-quan', [PheDuyetController::class, 'indexCoQuan'])->name('admin.phe_duyet.co_quan');
+        Router::get('/phe-duyet/co-quan/{id:\d+}', [PheDuyetController::class, 'chiTietCoQuan'])->name('admin.phe_duyet.chi_tiet_co_quan');
+        Router::post('/phe-duyet/co-quan/{id:\d+}/ky-so', [PheDuyetController::class, 'kySoCoQuan'])->name('admin.phe_duyet.ky_so_co_quan');
+        Router::post('/phe-duyet/co-quan/batch-sign', [PheDuyetController::class, 'batchSignAction'])->name('admin.phe_duyet.batch_sign');
+        Router::get('/phe-duyet/cho-huy', [PheDuyetController::class, 'danhSachChoHuy'])->name('admin.phe_duyet.cho_huy');
+        Router::post('/phe-duyet/cho-huy/{id:\d+}/duyet', [PheDuyetController::class, 'duyetHuy'])->name('admin.phe_duyet.duyet_huy');
+
+        // ====================================================================
+        // PH05: Quản trị Văn thư số & Phát hành (VAN_THU)
+        // ====================================================================
+        Router::get('/van-thu', [VanThuController::class, 'index'])->name('admin.van_thu.index');
+        Router::get('/van-thu/dong-dau/{id:\d+}', [VanThuController::class, 'dongDau'])->name('admin.van_thu.dong_dau');
+        Router::post('/van-thu/dong-dau/{id:\d+}', [VanThuController::class, 'xuLyDongDau'])->name('admin.van_thu.xu_ly_dong_dau');
+        Router::get('/van-thu/so-van-ban', [VanThuController::class, 'soVanBan'])->name('admin.van_thu.so_van_ban');
+        Router::post('/van-thu/so-van-ban/tao', [VanThuController::class, 'taoSoVanBan'])->name('admin.van_thu.tao_so_van_ban');
+        Router::get('/van-thu/cong-van', [VanThuController::class, 'congVan'])->name('admin.van_thu.cong_van');
+        Router::get('/van-thu/cong-van/xuat-csv/{id:\d+}', [VanThuController::class, 'xuatCsv'])->name('admin.van_thu.xuat_csv');
     });
 });

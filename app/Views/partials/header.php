@@ -55,6 +55,7 @@
             <li><a href="<?= e(url('/thu-tuc-hanh-chinh')) ?>" class="portal-nav-link">Thủ tục hành chính</a></li>
             <li><a href="<?= e(url('/nop-ho-so')) ?>" class="portal-nav-link">Nộp hồ sơ trực tuyến</a></li>
             <li><a href="<?= e(url('/tra-cuu')) ?>" class="portal-nav-link">Tra cứu tiến độ & QR</a></li>
+            <li><a href="<?= e(url('/kiem-tra-chu-ky')) ?>" class="portal-nav-link">Kiểm tra Chữ ký số</a></li>
             <li><a href="<?= e(url('/danh-gia-hai-long')) ?>" class="portal-nav-link">Đánh giá hài lòng (SIPAS)</a></li>
             <li><a href="<?= e(url('/ho-tro')) ?>" class="portal-nav-link">Hướng dẫn & Trợ giúp</a></li>
             <li style="margin-left:auto;"><a href="<?= e(url('/admin/dang-nhap')) ?>" class="portal-nav-link text-warning">Dành cho Cán bộ</a></li>
