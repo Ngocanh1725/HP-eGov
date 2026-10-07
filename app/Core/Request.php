@@ -26,6 +26,9 @@ class Request
     /** @var array<string, mixed> Mảng Files upload */
     private array $files;
 
+    /** @var array<string, mixed> Mảng tham số định tuyến từ URL */
+    private array $routeParams = [];
+
     /** @var array<string, mixed>|null Dữ liệu JSON body sau khi parse */
     private ?array $jsonBody = null;
 
@@ -44,6 +47,31 @@ class Request
         $this->server = $server;
         $this->cookies = $cookies;
         $this->files = $files;
+    }
+
+    /**
+     * Gán mảng tham số route từ Router
+     */
+    public function setRouteParams(array $params): static
+    {
+        $this->routeParams = $params;
+        return $this;
+    }
+
+    /**
+     * Lấy toàn bộ mảng tham số route
+     */
+    public function routeParams(): array
+    {
+        return $this->routeParams;
+    }
+
+    /**
+     * Lấy một tham số route theo key
+     */
+    public function routeParam(string $key, mixed $default = null): mixed
+    {
+        return $this->routeParams[$key] ?? $default;
     }
 
     /**

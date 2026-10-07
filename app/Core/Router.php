@@ -307,6 +307,7 @@ class Router
             ->send($request)
             ->through($matchedRoute->getMiddlewares())
             ->then(function (Request $req) use ($matchedRoute, $routeParams): Response {
+                $req->setRouteParams($routeParams);
                 return self::runAction($matchedRoute->getAction(), $req, $routeParams);
             });
     }

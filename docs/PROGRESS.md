@@ -17,7 +17,7 @@
 | **2** | **Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu** | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | **Hoàn thành** | 2026-10-07 | `database/schema.sql`, `database/seed.sql`, `docs/02_THIET_KE_CSDL.md` |
 | **3** | **Lõi MVC (Core Framework)** | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | **Hoàn thành** | 2026-10-07 | `app/Core/*`, `tests/run.php`, `public/index.php` |
 | **5** | **Xác thực & Phân quyền RBAC đa cấp** | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | **Hoàn thành** | 2026-10-07 | PH11, `AuthService.php`, `AuditService.php`, `VNeID Sandbox` |
-| **6** | Danh mục dùng chung (MDM) & Quy trình | MDM ĐVHC, TTHC quốc gia, BPMN-lite quy trình liên thông, E-Form designer JSON | *Chưa làm* | - | Kế hoạch: PH09, PH10, `app/Services/WorkflowEngine.php` |
+| **6** | **Danh mục dùng chung (MDM) & Quy trình** | MDM ĐVHC 3 cấp, cây tổ chức QCVN 102, TTHC quốc gia mock diff, E-Form designer JSON, BPMN-lite quy trình | **Hoàn thành** | 2026-10-07 | PH09, PH10, `WorkflowEngine.php`, `MdmService.php`, `tests/Unit/WorkflowValidationTest.php` |
 | **7** | Cổng Dịch vụ công (Công dân) | Wizard nộp hồ sơ, Auto-fill VNeID, Kho số hóa công dân, tra cứu QR, SIPAS | *Chưa làm* | - | Kế hoạch: PH01, `app/Controllers/Portal/*` |
 | **8** | Bộ phận Một cửa | Bàn tiếp nhận, quét QR CCCD, số hóa NĐ 107/2021, OCR mock, in Giấy hẹn A4 | *Chưa làm* | - | Kế hoạch: PH02, `app/Controllers/Admin/MotCuaController.php` |
 | **9** | Workflow Engine · Thụ lý & Liên thông | Phân công, thẩm định, đối soát LGSP/C06, liên thông ngang/dọc đa cơ quan | *Chưa làm* | - | Kế hoạch: PH03, `WorkflowEngine.php`, `LienThongLogisticsTest.php` |
@@ -247,9 +247,46 @@
   - `app/Views/admin/users/index.php`, `citizens.php`, `admin/roles/matrix.php`, `admin/profile/index.php`
   - `app/Views/partials/header.php`, `sidebar.php`, `topbar.php`, `routes/web.php`
   - `tests/Unit/AuditTest.php`, `AuthTest.php`, `DataScopeTest.php`, `tests/run.php`
-- **Kế hoạch cho Phiên 6:**
-  - Thực hiện **Phiên 6/16 – Danh mục dùng chung (MDM) & Quản trị quy trình**: PH09 (ĐVHC 3 cấp, cây tổ chức QCVN 102, Chức danh, Lĩnh vực, TTHC quốc gia có adapter CsdlTthcQuocGia mock đồng bộ, E-Form designer JSON, tham số hệ thống), PH10 (BPMN-lite, thiết kế bước, vai trò, đơn vị, liên thông logistics cảng biển, hiển thị SVG/Mermaid trực quan).
-
-
-
-
+### PHIÊN 6: DANH MỤC DÙNG CHUNG (MDM - PH09) & QUẢN TRỊ QUY TRÌNH BPMN-LITE (PH10)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. **A. Phân hệ PH09 – Quản trị Danh mục dùng chung (Quyền `admin.danh_muc`):**
+     - **Đơn vị hành chính (`dm_dvhc`):** Cây 3 cấp (Tỉnh/Thành phố → Quận/Huyện → Xã/Phường), quản lý hiệu lực (`hieu_luc_tu`, `hieu_luc_den`), nghiệp vụ Sáp nhập ĐVHC chuyển giao địa bàn và lưu vết lịch sử thay đổi `AuditService`.
+     - **Cây tổ chức Đơn vị / Phòng ban (`don_vi`):** Phân cấp trực thuộc (UBND TP → Sở ngành → Phòng ban → Bộ phận Một cửa), thuật toán tự động gợi ý Mã định danh điện tử cơ quan nhà nước theo chuẩn QCVN 102:2016/BTTTT (`000.xx.yy.H21`).
+     - **Chức danh (`chuc_danh`) & Lĩnh vực (`dm_linh_vuc`):** Quản trị danh mục, ngừng hiệu lực an toàn (không xóa vật lý khi đã có liên kết khóa ngoại), xuất CSV UTF-8 kèm BOM.
+     - **Thủ tục hành chính (`thu_tuc_hanh_chinh`):** Đầy đủ thông tin, thời hạn giải quyết, căn cứ pháp lý, mức độ Một phần/Toàn trình, phí/lệ phí, liên kết E-Form và quy trình.
+     - **Tích hợp Đồng bộ CSDL TTHC Quốc gia:** Adapter Pattern `CsdlTthcQuocGiaInterface` & `CsdlTthcQuocGiaMock`, giao diện màn hình đối chiếu So sánh Khác biệt (Diff) chia 3 nhóm: Công bố mới, Cập nhật/Sửa đổi (So sánh Cũ vs Mới), và Bãi bỏ/Hết hiệu lực; chức năng xác nhận áp dụng cập nhật vào CSDL Hải Phòng.
+     - **Trình thiết kế Biểu mẫu điện tử (E-Form Designer):** Giao diện tương tác trực quan cho phép định nghĩa các trường dữ liệu hành chính (Text, Số, Ngày tháng, Lựa chọn Select, Số CCCD 12 số, Địa chỉ ĐVHC 3 cấp, Bảng lặp Repeater, Tệp File đính kèm), đánh dấu trường tự động điền (Auto-fill) từ VNeID C06 (`ho_ten`, `so_cccd`, `ngay_sinh`, `gioi_tinh`, `que_quan`, `dia_chi_thuong_tru`), tính năng Xem trước biểu mẫu trực tiếp (Live Preview modal) và lưu trữ cấu trúc JSON theo phiên bản (`bieu_mau_eform`).
+     - **Ngày nghỉ lễ & Lịch làm việc (`dm_ngay_nghi`):** Lịch năm phục vụ tính toán SLA chính xác (loại trừ thứ 7, CN và ngày nghỉ lễ); chức năng Nhân bản toàn bộ ngày nghỉ lễ sang năm tiếp theo.
+     - **Tham số hệ thống (`cau_hinh_he_thong`):** Quản lý giờ làm việc sáng/chiều, kiểm tra hợp lệ kiểu dữ liệu (integer, json, string) và tự động ghi vết lịch sử phiên bản cấu hình (`phien_ban_cau_hinh`).
+     - **Trạng thái xử lý:** Danh mục 9 trạng thái chuẩn theo Thông tư 01/2018/TT-VPCP (chế độ chỉ xem Read-only).
+     - **Dịch vụ MDM chung (`MdmService`):** Xuất tệp CSV định dạng chuẩn UTF-8 có Byte Order Mark (`\xEF\xBB\xBF`) tương thích 100% với Microsoft Excel không bị lỗi font tiếng Việt; đọc và kiểm tra lỗi từng dòng CSV (Row-by-row Validator).
+  2. **B. Phân hệ PH10 – Quản trị Quy trình xử lý (BPMN-lite, Quyền `admin.quy_trinh`):**
+     - Quản trị danh sách quy trình theo TTHC, hỗ trợ cơ chế Quản lý phiên bản (Tạo phiên bản mới sao chép toàn bộ các bước và chuyển tiếp, các hồ sơ đang xử lý giữ nguyên phiên bản cũ an toàn).
+     - Thiết kế bước (`quy_trinh_buoc`): Loại bước theo chuẩn 8 nhóm (`TIEP_NHAN`, `PHAN_CONG`, `THU_LY`, `LAY_Y_KIEN`, `THAM_TRA`, `PHE_DUYET`, `DONG_DAU`, `TRA_KET_QUA`), vai trò xử lý, đơn vị xử lý (nội bộ hoặc liên Sở / liên cấp), thời hạn giờ, cấu hình cho phép trả lại hồ sơ.
+     - Luồng chuyển tiếp (`quy_trinh_chuyen_tiep`): Hành động (`CHUYEN`, `TRA_LAI`, `YEU_CAU_BO_SUNG`, `TU_CHOI`) và điều kiện luân chuyển.
+     - **Động cơ Quy trình (`WorkflowEngine`):**
+       + Trình thẩm định quy trình (`validateWorkflow`): Tự động phát hiện lỗi thiếu bước bắt đầu `TIEP_NHAN`, thiếu bước kết thúc `TRA_KET_QUA`, phát hiện các bước mồ côi (Unreachable không có luồng đến hoặc Dead-end không có luồng đi).
+       + Bộ kiểm tra SLA: Tính tổng thời hạn các bước, so sánh đối chiếu với thời hạn quy định của TTHC, phát ra cảnh báo khi bị lệch thời hạn cam kết.
+       + Sinh sơ đồ Mermaid BPMN-lite tự động (`generateMermaidDiagram`): Tự động kết xuất đồ thị trực quan với các hình khối và mũi tên hành động.
+     - **Quy trình Mẫu Liên thông Logistics Cảng biển Hải Phòng:** Hiển thị chính xác chuỗi phối hợp liên thông qua đúng 5 cơ quan đơn vị:
+       1. Bộ phận Một cửa - UBND Quận Hồng Bàng (`MC_HB`)
+       2. Phòng Quản lý Quy hoạch & Kiến trúc - Sở Xây dựng (`QLQH_SXD`)
+       3. Phòng Đánh giá Tác động Môi trường - Sở TN&MT (`DTM_STNMT`)
+       4. Phòng Thẩm định Dự án Đầu tư - Sở KH&ĐT (`TEDA_SKHDT`)
+       5. Lãnh đạo & Văn phòng Ủy ban nhân dân Thành phố Hải Phòng (`UBND_TP`).
+  3. **C. Kiểm thử đơn vị & Tích hợp:**
+     - Xây dựng `tests/Unit/WorkflowValidationTest.php` với 6 test cases: Thẩm định quy trình chuẩn, Tính tổng thời hạn SLA, Phát hiện thiếu đầu/cuối, Sinh Mermaid, Đồng bộ Adapter Mock CSDL Quốc gia, Xuất CSV UTF-8 BOM.
+     - Toàn bộ test suite: **34/34 tests passed 100%**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Integrations/Contracts/CsdlTthcQuocGiaInterface.php`, `app/Integrations/Mock/CsdlTthcQuocGiaMock.php`
+  - `app/Services/MdmService.php`, `app/Services/WorkflowEngine.php`
+  - `app/Controllers/Admin/DvhcController.php`, `DonViController.php`, `CategoryController.php`, `TthcController.php`, `EformController.php`, `ConfigController.php`, `WorkflowController.php`
+  - `app/Views/admin/dvhc/index.php`, `admin/don_vi/index.php`, `admin/categories/linh_vuc.php`, `chuc_danh.php`
+  - `app/Views/admin/tthc/index.php`, `sync_preview.php`, `admin/eform/designer.php`
+  - `app/Views/admin/config/holidays.php`, `parameters.php`, `statuses.php`
+  - `app/Views/admin/workflow/index.php`, `detail.php`
+  - `app/Views/partials/sidebar.php`, `routes/web.php`, `app/Core/Request.php`, `app/Core/Router.php`
+  - `tests/Unit/WorkflowValidationTest.php`
+- **Kế hoạch cho Phiên 7:**
+  - Thực hiện **Phiên 7/16 – Cổng Dịch vụ công trực tuyến (Công dân - PH01)**: Wizard nộp hồ sơ đa bước, tích hợp nạp dữ liệu từ E-Form Designer (JSON) và Auto-fill VNeID C06, Kho dữ liệu số hóa của công dân, tra cứu hồ sơ đa kênh (Mã hồ sơ, quét mã QR), khảo sát mức độ hài lòng SIPAS (chấm điểm 5 sao theo QĐ 876/QĐ-BNV).

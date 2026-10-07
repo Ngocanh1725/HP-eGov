@@ -115,6 +115,62 @@
             <?php endif; ?>
             <?php endif; ?>
 
+            <?php if (can('admin.danh_muc') || has_role('SYSADMIN')): ?>
+            <li class="sidebar-heading">Danh mục dùng chung (PH09)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/dvhc')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/dvhc')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🗺️</span>
+                    <span class="sidebar-text">ĐVHC 3 cấp</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/don-vi')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/don-vi')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🏛️</span>
+                    <span class="sidebar-text">Cơ cấu Tổ chức</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/tthc')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/tthc')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-text">Thủ tục hành chính</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/eform')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/eform')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📝</span>
+                    <span class="sidebar-text">Thiết kế E-Form</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/linh-vuc')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/linh-vuc')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🏷️</span>
+                    <span class="sidebar-text">Lĩnh vực & Chức danh</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/ngay-nghi')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/ngay-nghi')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">📅</span>
+                    <span class="sidebar-text">Lịch nghỉ & Giờ làm việc</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/danh-muc/cau-hinh')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/danh-muc/cau-hinh')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-text">Tham số hệ thống</span>
+                </a>
+            </li>
+            <?php endif; ?>
+
+            <?php if (can('admin.quy_trinh') || has_role('SYSADMIN')): ?>
+            <li class="sidebar-heading">Quản trị quy trình (PH10)</li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/quy-trinh')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/quy-trinh')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔀</span>
+                    <span class="sidebar-text">Quy trình BPMN-lite</span>
+                </a>
+            </li>
+            <?php endif; ?>
+
             <li class="sidebar-item mt-3">
                 <a href="<?= e(url('/admin/dang-xuat')) ?>" class="sidebar-link text-danger">
                     <span class="sidebar-icon">🚪</span>
