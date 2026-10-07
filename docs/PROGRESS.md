@@ -15,7 +15,7 @@
 | **0** | **Thiết lập bối cảnh & Rule workspace** | Rule workspace, kiểm tra môi trường, khung thư mục, Git, tài liệu tiến độ | **Hoàn thành** | 2026-10-07 | `.agents/rules/hp-egov.md`, `PROGRESS.md`, `00_TRUY_VET_BAO_CAO.md` |
 | **1** | **Phân tích & Thiết kế hệ thống** | Đặc tả 15 phân hệ, Use Case, State Machine, Sequence, ERD, 3 vùng mạng | **Hoàn thành** | 2026-10-07 | `docs/01_PHAN_TICH_THIET_KE.md` |
 | **2** | **Cơ sở dữ liệu (phpMyAdmin) & Dữ liệu mẫu** | DDL InnoDB, trigger chặn DELETE, view, seed 15 quận/huyện HP, ~200 hồ sơ | **Hoàn thành** | 2026-10-07 | `database/schema.sql`, `database/seed.sql`, `docs/02_THIET_KE_CSDL.md` |
-| **3** | Lõi MVC (Core Framework) | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | *Chưa làm* | - | Kế hoạch: `app/Core/*`, `tests/run.php` |
+| **3** | **Lõi MVC (Core Framework)** | PHP 8.2 pure, Router, Controller, Model, View, DB master/replica, CSRF, Test runner | **Hoàn thành** | 2026-10-07 | `app/Core/*`, `tests/run.php`, `public/index.php` |
 | **4** | Design System & Layout giao diện | Navy `#0B2E59`, Be Vietnam Pro, Chart.js, Portal layout, Admin layout, UI Kit | *Chưa làm* | - | Kế hoạch: `public/assets/*`, `app/Views/layouts/*` |
 | **5** | Xác thực & Phân quyền RBAC đa cấp | Guard cán bộ/công dân, SSO VNeID mock, 7 vai trò, ma trận quyền, Audit hash chain | *Chưa làm* | - | Kế hoạch: PH11, `app/Services/AuthService.php`, `AuditService.php` |
 | **6** | Danh mục dùng chung (MDM) & Quy trình | MDM ĐVHC, TTHC quốc gia, BPMN-lite quy trình liên thông, E-Form designer JSON | *Chưa làm* | - | Kế hoạch: PH09, PH10, `app/Services/WorkflowEngine.php` |
@@ -102,6 +102,60 @@
   - `database/schema.sql`
   - `database/seed.sql`
   - `docs/02_THIET_KE_CSDL.md`
-- **Kế hoạch cho Phiên 3:**
-  - Chạy **Phiên 3/16 – Lõi MVC (Core Framework)**: Xây dựng nền tảng PHP 8.2 thuần chuẩn MVC, Router, Database Master/Replica PDO, Request, Response, Controller, Model, View, Csrf, Session, Validator, Logger, ErrorHandler và test runner tự viết `tests/run.php`.
+- **Kế hoạch cho phiên tiếp theo:** Chuyển sang Phiên 3 thực hiện Lõi MVC Framework.
+
+### PHIÊN 3: LÕI MVC (CORE FRAMEWORK)
+- **Thời gian hoàn thành:** 2026-10-07
+- **Công việc đã thực hiện:**
+  1. Xây dựng nền tảng điều hướng và khởi động:
+     - Root `.htaccess` điều hướng toàn bộ request vào `public/`, chặn truy cập trực tiếp file môi trường và tài liệu nhạy cảm.
+     - `public/.htaccess` thiết lập RewriteEngine chuyển hướng tất cả URL ảo về `public/index.php` (Front Controller duy nhất), chặn `Options -Indexes`.
+     - `public/index.php` khởi tạo hằng số `HPEGOV_START`, nạp bootstrap và thực thi `App::run()`.
+     - `app/bootstrap.php` nạp Autoloader PSR-4 thuần cho namespace `App\` $\rightarrow$ `app/`, nạp helper functions và khởi động ứng dụng.
+  2. Xây dựng hệ thống cấu hình và môi trường:
+     - `app/Core/Env.php`: Đọc file `.env`, parse kiểu dữ liệu tự động (`true`, `false`, `null`, `string`, cắt bỏ comment cuối dòng).
+     - `app/Core/Config.php`: Truy xuất cấu hình đa cấp theo cú pháp dot-notation (`Config::get('app.url')`), cache trong bộ nhớ.
+     - `.env.example` & `.env`: Cấu hình đầy đủ các biến môi trường (`APP_*`, `DB_*`, `DB_READ_*`, `INTEGRATION_MODE`, `SESSION_*`, `RATE_LIMIT_*`).
+     - Tệp cấu hình: `app/Config/app.php`, `database.php`, `session.php`, `security.php`, `sla.php`.
+  3. Xây dựng tầng HTTP Foundation & Routing:
+     - `app/Core/Request.php`: Đóng gói input, hỗ trợ Method Spoofing (`_method` và header `X-HTTP-Method-Override`), chuẩn hóa đường dẫn tương đối (tự động loại bỏ prefix thư mục con XAMPP `/HP-eGov`), xử lý an toàn JSON payload, file uploads, IP và AJAX detection.
+     - `app/Core/Response.php`: Đóng gói phản hồi HTTP (HTML, JSON utf-8, Redirect, Tải file an toàn chống Path Traversal).
+     - `app/Core/Router.php`: Đăng ký route `GET`, `POST`, `PUT`, `DELETE`, hỗ trợ tham số động có regex `{id:\d+}`, Route Group với `prefix` và `middleware`, đặt tên route và hàm đảo ngược URL `route()`.
+  4. Xây dựng tầng Cơ sở MVC:
+     - `app/Core/Controller.php`: Cung cấp hàm tiện ích `view()`, `json()`, `redirect()`, `authorize()`.
+     - `app/Core/View.php`: Render giao diện thuần PHP hỗ trợ Layouts kế thừa, Section bắt khối và Partial tái sử dụng.
+     - `app/Core/Model.php`: Prepared statement PDO 100%, query builder (`where`, `whereIn`, `orderBy`, `limit`, `paginate`), Mass Assignment whitelist `$fillable`. **Đặc biệt: Chặn tuyệt đối xóa vật lý (`delete()` ném LogicException), chỉ hỗ trợ `softDelete()`**.
+     - `app/Core/Paginator.php`: Quản lý phân trang và sinh liên kết HTML chuẩn giao diện.
+  5. Xây dựng tầng CSDL PDO Master/Replica:
+     - `app/Core/Database.php`: Quản lý kết nối PDO Singleton với `PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION`, `PDO::ATTR_EMULATE_PREPARES => false`, hỗ trợ tách kết nối Write (Master) và Read (Replica), cơ chế Transaction an toàn `transaction(callable)`.
+  6. Xây dựng hệ thống Bảo mật, Phiên & Tiện ích:
+     - `app/Core/Session.php`: Cấu hình Cookie an toàn (HttpOnly, SameSite, Secure khi HTTPS), kiểm soát Idle Timeout 30 phút, xoay vòng session ID và cơ chế Flash message.
+     - `app/Core/Csrf.php`: Sinh token ngẫu nhiên 32-byte bằng `random_bytes`, kiểm tra qua `hash_equals`, sinh thẻ ẩn form HTML.
+     - `app/Core/Validator.php`: Tập luật kiểm định đầy đủ quy chuẩn Việt Nam (`required`, `email`, `cccd` 12 số, `mst` 10/13 số, `phone` VN, `date`, `in`, `max`, `min`, `unique` CSDL...) với thông báo lỗi tiếng Việt thân thiện.
+     - `app/Core/Logger.php`: Ghi nhật ký theo ngày chuẩn PSR-3 tại `storage/logs/hp-egov-YYYY-MM-DD.log`.
+     - `app/Core/ErrorHandler.php`: Bắt Exception & Error toàn cục, hiển thị trang lỗi thân thiện (403, 404, 419, 429, 500), ẩn chi tiết ở môi trường production.
+  7. Xây dựng Middleware Pipeline:
+     - `app/Core/MiddlewareInterface.php` & `app/Core/Pipeline.php` (kiến trúc củ hành Onion).
+     - 6 Middlewares: `SecurityHeadersMiddleware`, `CsrfMiddleware`, `RateLimitMiddleware` (kiểm tra bảng `gioi_han_truy_cap` $\le 60$ req/phút và `ip_chan`), `AuthMiddleware`, `GuestMiddleware`, `PermissionMiddleware`.
+  8. Hệ thống Enums & Helpers:
+     - 7 Enums chuẩn hóa: `TrangThaiHoSo` (9 trạng thái, màu sắc, quy về 6 nhóm chuẩn TT01), `VaiTro` (7 vai trò cán bộ/công dân), `MauSla` (Xanh/Vàng/Đỏ), `KenhNop`, `LoaiBuoc`, `LoaiTaiLieu`, `KenhThongBao`.
+     - `app/Helpers/functions.php`: Cung cấp `e()`, `url()`, `asset()`, `route()`, `csrf_field()`, `csrf_token()`, `method_field()`, `old()`, `errors()`, `flash()`, `date_vn()`, `auth()`, `env()`, `config()`.
+  9. Kiểm thử tự động & Trang chủ kiểm tra luồng:
+     - `tests/run.php`: Test Runner CLI độc lập hiển thị màu ANSI, hỗ trợ assertions.
+     - Bộ 5 Unit Tests: `RouterTest.php`, `ValidatorTest.php`, `CsrfTest.php`, `EnumsTest.php`, `ModelTest.php`. Chạy thành công 19/19 tests (100% passed).
+     - Kiểm tra cú pháp PHP: `php -l` đạt 50/50 file không có bất kỳ lỗi cú pháp nào.
+     - Kiểm tra thực tế trên Web Server Apache XAMPP: URL `http://localhost/HP-eGov/` trả về HTTP 200 trang chủ với giao diện chuẩn; URL ảo lỗi trả về HTTP 404 với giao diện thông báo lỗi trang nhã; API `/api/v1/health` trả về JSON hợp lệ kèm đầy đủ các Security Headers và RateLimit Headers.
+- **Tệp tin đã tạo:**
+  - `.htaccess`, `public/.htaccess`, `public/index.php`, `app/bootstrap.php`
+  - `.env.example`, `.env`, `app/Config/*.php` (5 file)
+  - `app/Core/*.php` (17 file)
+  - `app/Middleware/*.php` (6 file)
+  - `app/Enums/*.php` (7 file)
+  - `app/Helpers/functions.php`
+  - `app/Controllers/Portal/HomeController.php`, `app/Views/portal/home.php`
+  - `routes/web.php`, `routes/api.php`
+  - `tests/run.php`, `tests/Unit/*.php` (5 test suites)
+- **Kế hoạch cho Phiên 4:**
+  - Chạy **Phiên 4/16 – Design System & Layout giao diện**: Xây dựng bộ giao diện đồng bộ theo chuẩn hành chính hiện đại (màu Navy `#0B2E59`, Đỏ cờ `#C8102E`, Vàng kim `#D4A017`, font Be Vietnam Pro), tích hợp Chart.js, HTML5-QRCode cục bộ (không dùng CDN), layout Portal công dân, layout Admin cán bộ Một cửa/Thụ lý/Lãnh đạo, UI Kit đầy đủ components (buttons, tables, status badges, SLA badges, breadcrumbs, modals, toasts).
+
 

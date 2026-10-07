@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Điều hướng root về thư mục public
+    RewriteRule ^$ public/ [L]
+    RewriteCond %{REQUEST_URI} !public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Chặn truy cập trực tiếp file môi trường và tài liệu nhạy cảm
+<FilesMatch "(^\.env|\.git|\.sql|\.log|\.md)$">
+    Require all denied
+</FilesMatch>

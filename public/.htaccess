@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    Options -Indexes
+    RewriteEngine On
+
+    # Chặn truy cập file ẩn
+    RewriteRule ^\..* - [F,L]
+
+    # Phục vụ file và thư mục thực tế nếu tồn tại trong public
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
