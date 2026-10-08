@@ -44,4 +44,8 @@ Router::group(['prefix' => '/api/v1', 'middleware' => ['security_headers', 'rate
 
     // 6. Webhook tích hợp từ nền tảng LGSP / NDXP Hải Phòng (Xác thực chữ ký HMAC-SHA256)
     Router::post('/webhook/lgsp', [WebhookController::class, 'handleLgsp'])->name('api.webhook.lgsp');
+
+    // 7. Webhook tiếp nhận kết quả thanh toán trực tuyến từ Cổng DVCQG PayGov / VNPAY
+    Router::post('/webhook/payment', [WebhookController::class, 'handlePayment'])->name('api.webhook.payment');
+    Router::post('/webhook/thanh-toan', [WebhookController::class, 'handlePayment'])->name('api.webhook.thanh_toan');
 });

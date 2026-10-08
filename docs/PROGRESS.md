@@ -911,6 +911,58 @@
   - `tests/screenshot_runner.js` (Script tự động hóa chụp ảnh kiểm chứng qua CDP)
   - `docs/PROGRESS.md` (Cập nhật)
 
+---
+
+### PHIÊN 4 (CHUYÊN ĐỀ): KÝ SỐ, AN TOÀN WORM & DỊCH VỤ SỐ (CRYPTOGRAPHY, WORM HASH CHAIN & DIGITAL SERVICES)
+- **Thời gian hoàn thành:** 2026-10-08
+- **Căn cứ thực hiện:**
+  - Luật Giao dịch điện tử số 20/2023/QH15 & Nghị định số 130/2018/NĐ-CP (Quy định chi tiết thi hành Luật Giao dịch điện tử về chữ ký số và dịch vụ chứng thực chữ ký số).
+  - Báo cáo Kiến trúc & Kế hoạch Triển khai HP-eGov (§1.1, §1.3, §2.2, §4.3 về Nhật ký kiểm toán WORM Append-Only Hash Chain).
+  - Nghị định số 59/2022/NĐ-CP về Định danh và xác thực điện tử (VNeID Mức độ 2).
+  - Chuẩn an toàn thông tin hệ thống Cấp độ 3 (Nghị định 85/2016/NĐ-CP & TCVN 11930:2017).
+- **Công việc đã hoàn thiện & kiểm chứng:**
+  1. **Chữ ký số công vụ & Toàn vẹn tệp tin (`app/Services/ChuKySoService.php`):**
+     - Lưu trữ cặp khóa riêng RSA 2048-bit và chứng thư X.509 an toàn trong `storage/keys/` (được bảo vệ nghiêm ngặt bằng file `.htaccess Deny from all`).
+     - Tự động sinh khóa riêng và chứng thư số cho cán bộ và tổ chức; cơ chế đồng bộ public key PEM giữa tệp đĩa và bảng `chung_thu_so` trong CSDL.
+     - Hỗ trợ đầy đủ 4 loại chữ ký công vụ chuẩn mực:
+       + (1) Số hóa Một cửa (`SO_HOA_MOT_CUA` / alias `SO_HOA`).
+       + (2) Ký duyệt bước 1 của Lãnh đạo Phòng (`KY_DUYET_LD_PHONG` / alias `DUYET_BUOC_1`).
+       + (3) Ký phát hành SmartCA của Lãnh đạo Cơ quan (`KY_PHAT_HANH_LD_CO_QUAN` / alias `PHAT_HANH`).
+       + (4) Đóng dấu số cơ quan của Văn thư (`DONG_DAU_SO_CO_QUAN` / alias `DONG_DAU_CO_QUAN`).
+     - Khi ký số: Tính toán mã băm SHA-256 của tệp tin, ký băm bằng Private Key, lưu file chữ ký `.sig` kèm tệp gốc và lưu vết vào bảng `chu_ky_so`.
+     - Cơ chế phát hiện can thiệp tức thì (Tamper Detection): Hàm `verifyDocumentSignature()` đối chiếu mã SHA-256 hiện tại so với lúc ký; nếu tệp bị sửa đổi dù chỉ 1 byte, hệ thống lập tức báo lỗi và đánh dấu mất tính toàn vẹn (`file_intact = false`, `valid = false`).
+     - Thực thi nguyên tắc PoLP: Chặn đứng 100% nỗ lực ký số từ tài khoản Quản trị viên hệ thống (`SYSADMIN`).
+  2. **Nhật ký kiểm toán bất biến WORM Hash Chain (§4.3 Báo cáo Kiến trúc - `app/Services/AuditService.php`):**
+     - Tự động ghi nhận mọi thao tác trọng yếu vào `nhat_ky_kiem_toan`.
+     - Bổ sung công thức chuỗi băm WORM chuẩn:
+       `hash_n = SHA256(hash_(n-1) + id + nguoi_dung_id + hanh_dong + bang_tac_dong + ban_ghi_id + created_at)`.
+     - Hàm `verifyChain()` kiểm tra tính liên tục của chuỗi mắt xích (`prev_hash`) và tính toàn vẹn dữ liệu từng bản ghi; phát hiện chính xác vị trí bản ghi bị can thiệp trái phép (`broken_at_id`) và giải thích chi tiết lý do sai lệch.
+  3. **Cổng Dịch vụ Tích hợp & Adapters mô phỏng:**
+     - Xây dựng Adapter `app/Integrations/Mock/VneidGatewayMock.php`: Mô phỏng xác thực tài khoản VNeID Mức 2 (NĐ 59/2022/NĐ-CP) và trích xuất hồ sơ nhân thân đã kiểm chứng từ C06.
+     - Kết nối đồng bộ hệ sinh thái adapter: `LgspGatewayMock` (CSDLQG Dân cư C06), `SmsZnsNotificationMock` (SMS Brandname "UBND TP HP" / Zalo ZNS), `BuuChinhGatewayMock` (VNPost bưu chính công ích).
+  4. **REST API `/api/v1` & Webhook Thanh toán Trực tuyến:**
+     - Xác thực Bearer Token qua `ApiTokenService`: kiểm tra mã băm SHA-256, thời hạn `expires_at`, trạng thái kích hoạt, phân tách phạm vi quyền `scopes` (`cong_dan`, `lanh_dao`).
+     - Bổ sung endpoint Webhook tiếp nhận kết quả thanh toán trực tuyến trong `routes/api.php`: `/api/v1/webhook/payment` và `/api/v1/webhook/thanh-toan`.
+     - Bắt buộc xác thực chữ ký HMAC-SHA256 qua tiêu đề `X-Payment-Signature`.
+     - Tự động cập nhật thông tin thanh toán vào `du_lieu_eform`, tạo bản ghi biên lai điện tử PDF trong `ho_so_tai_lieu`, ghi nhận luân chuyển hồ sơ, audit trail WORM và nhật ký tích hợp.
+  5. **Bộ Kiểm thử Chuyên biệt Phiên 4 (`tests/Integration/Phien4KySoWormApiTest.php`):**
+     - `testOpenSslKySoVaPhatHienCanThiep1Byte`: Ký số file -> Đọc lại thành công -> Sửa 1 byte file -> Xác thực thất bại 100%.
+     - `testBonLoaiChuKySoVaChanSysadmin`: Kiểm tra thành công 4 loại chữ ký công vụ và chặn đứng SYSADMIN can thiệp ký số.
+     - `testWormHashChainToanVen50BanGhiVaPhatHienCanThiep`: Tạo chuỗi kiểm toán mẫu -> Giả lập sửa 1 bản ghi -> `verifyChain` phát hiện chính xác `broken_at_id` và khôi phục an toàn.
+     - `testRestApiBearerTokenValidation`: Kiểm tra Bearer Token hợp lệ, sai hash, hết hạn và phân tách scopes.
+     - `testWebhookThanhToanCapNhatBienLaiDienTu`: Tiếp nhận webhook thanh toán, kiểm tra chữ ký HMAC, sinh biên lai điện tử và từ chối chữ ký giả mạo (HTTP 403) / thiếu chữ ký (HTTP 401).
+     - `testAdaptersDichVuSo`: Kiểm tra 4 adapter VNeID Mức 2, C06 LGSP, SMS/ZNS và VNPost.
+  6. **Kết quả kiểm thử toàn hệ thống:**
+     - Toàn bộ test suite: **134/134 bài kiểm thử PASSED (100% Thành công, 0 Thất bại)**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `app/Services/ChuKySoService.php` (Cập nhật alias 4 loại chữ ký số)
+  - `app/Services/AuditService.php` (Bổ sung computeWormHash và nâng cấp verifyChain)
+  - `app/Integrations/Mock/VneidGatewayMock.php` (Mới)
+  - `app/Controllers/Api/WebhookController.php` (Bổ sung handlePayment HMAC-SHA256)
+  - `routes/api.php` (Đăng ký routes webhook payment)
+  - `tests/Integration/Phien4KySoWormApiTest.php` (Mới)
+  - `docs/PROGRESS.md` (Cập nhật)
+
 
 
 

@@ -105,6 +105,24 @@ class AuditService
     }
 
     /**
+     * Tính toán chuỗi băm WORM Hash Chain (§4.3 Báo cáo Kiến trúc):
+     * hash_n = SHA256(hash_(n-1) + id + nguoi_dung_id + hanh_dong + bang_tac_dong + ban_ghi_id + created_at)
+     */
+    public static function computeWormHash(
+        string $prevHash,
+        int|string $id,
+        int|string|null $nguoiDungId,
+        string $hanhDong,
+        string $bangTacDong,
+        int|string|null $banGhiId,
+        string $createdAt
+    ): string {
+        $payload = $prevHash . (string)$id . ($nguoiDungId !== null ? (string)$nguoiDungId : '')
+            . $hanhDong . $bangTacDong . ($banGhiId !== null ? (string)$banGhiId : '') . $createdAt;
+        return hash('sha256', $payload);
+    }
+
+    /**
      * Kiểm tra tính toàn vẹn của chuỗi băm kiểm toán (Audit Hash Chain Verification)
      *
      * @param int|null $limit Giới hạn số lượng bản ghi kiểm tra (mặc định 1000 bản ghi)
@@ -179,8 +197,26 @@ class AuditService
 
             // 2. Tính lại hash của bản ghi hiện tại để kiểm tra tính toàn vẹn dữ liệu
             $recomputedHash = self::computeHash($prevHash, (string)$row['du_lieu_moi']);
+            $isDataValid = ($currentHash === $recomputedHash);
 
-            if ($currentHash !== $recomputedHash) {
+            if (!$isDataValid) {
+                // Kiểm tra thêm theo công thức WORM có cấu trúc (§4.3)
+                $wormHash = self::computeWormHash(
+                    $prevHash,
+                    $id,
+                    $row['nguoi_dung_id'],
+                    (string)$row['hanh_dong'],
+                    (string)$row['bang_tac_dong'],
+                    $row['ban_ghi_id'],
+                    (string)$row['created_at']
+                );
+                if ($currentHash === $wormHash) {
+                    $isDataValid = true;
+                    $recomputedHash = $wormHash;
+                }
+            }
+
+            if (!$isDataValid) {
                 return [
                     'valid' => false,
                     'total_verified' => $count,

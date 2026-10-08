@@ -341,27 +341,31 @@ class ChuKySoService
             throw new DomainException("Quản trị viên hệ thống (SYSADMIN) tuyệt đối không có thẩm quyền ký số nghiệp vụ!");
         }
 
-        // KIỂM SOÁT THẨM QUYỀN KÝ SỐ THEO LOẠI
+        // KIỂM SOÁT THẨM QUYỀN KÝ SỐ THEO LOẠI (Hỗ trợ cả tên chuẩn và mã định danh nghiệp vụ)
         switch ($loaiChuKy) {
             case 'DUYET_BUOC_1':
+            case 'KY_DUYET_LD_PHONG':
                 if (!in_array('LD_PHONG', $roles, true)) {
                     throw new DomainException("Chỉ Lãnh đạo phòng (LD_PHONG) mới có thẩm quyền ký số duyệt bước 1!");
                 }
                 break;
 
             case 'PHAT_HANH':
+            case 'KY_PHAT_HANH_LD_CO_QUAN':
                 if (!in_array('LD_CO_QUAN', $roles, true)) {
                     throw new DomainException("Chỉ Lãnh đạo cơ quan (LD_CO_QUAN) mới có thẩm quyền ký số phát hành kết quả!");
                 }
                 break;
 
             case 'DONG_DAU_CO_QUAN':
+            case 'DONG_DAU_SO_CO_QUAN':
                 if (!in_array('VAN_THU', $roles, true)) {
                     throw new DomainException("Chỉ Văn thư số (VAN_THU) mới có thẩm quyền đóng dấu số cơ quan!");
                 }
                 break;
 
             case 'SO_HOA':
+            case 'SO_HOA_MOT_CUA':
                 if (!in_array('CB_MOT_CUA', $roles, true) && !in_array('CHUYEN_VIEN', $roles, true)) {
                     throw new DomainException("Chỉ Cán bộ Một cửa (CB_MOT_CUA) mới có thẩm quyền ký số số hóa đầu vào!");
                 }
@@ -384,7 +388,7 @@ class ChuKySoService
         $sha256 = hash_file('sha256', $filePath);
 
         // Lấy chứng thư số phù hợp (Cá nhân hoặc Tổ chức)
-        if ($loaiChuKy === 'DONG_DAU_CO_QUAN') {
+        if ($loaiChuKy === 'DONG_DAU_CO_QUAN' || $loaiChuKy === 'DONG_DAU_SO_CO_QUAN') {
             // Đóng dấu số cơ quan dùng chứng thư tổ chức
             $donViId = (int)($options['don_vi_id'] ?? 0);
             if ($donViId <= 0) {
