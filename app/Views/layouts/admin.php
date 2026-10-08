@@ -7,11 +7,12 @@
     <meta name="description" content="Phân hệ xử lý hành chính dành cho cán bộ Một cửa, Thụ lý, Lãnh đạo TP. Hải Phòng">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
-    <!-- Design System CSS (100% Cục bộ) -->
-    <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">
-    <link rel="stylesheet" href="<?= e(asset('css/layout.css')) ?>">
+    <!-- Design System CSS & Phông chữ Tiếng Việt Cục bộ (Chuẩn TSLCD, không dùng CDN) -->
+    <link rel="stylesheet" href="<?= e(asset('fonts/be-vietnam-pro.css')) ?>?v=2">
+    <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>?v=2">
+    <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>?v=2">
+    <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>?v=2">
+    <link rel="stylesheet" href="<?= e(asset('css/layout.css')) ?>?v=2">
 </head>
 <body class="admin-layout">
     <!-- Sidebar thu gọn được -->

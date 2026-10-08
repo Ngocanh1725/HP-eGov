@@ -862,6 +862,55 @@
   - `tests/Unit/Phien2LoiNghiepVuTest.php` (Mới)
   - `docs/PROGRESS.md` (Cập nhật)
 
+---
+
+### PHIÊN 3 (CHUYÊN ĐỀ): GIAO DIỆN CÔNG VỤ & CHUẨN HÓA NỘI DUNG (WORKSTATION UI & DESIGN SYSTEM)
+- **Thời gian hoàn thành:** 2026-10-08
+- **Căn cứ thực hiện:**
+  - Tiêu chuẩn thiết kế giao diện hành chính công và Mạng truyền số liệu chuyên dùng (TSLCD) cấp II (100% tài nguyên nội bộ, không phụ thuộc CDN bên ngoài).
+  - Nghị định số 30/2020/NĐ-CP của Chính phủ về công tác văn thư (Thể thức, kỹ thuật trình bày văn bản hành chính & khổ giấy A4).
+  - Thông tư số 01/2018/TT-VPCP của Văn phòng Chính phủ (Hệ thống biểu mẫu nghiệp vụ: Mẫu 01 Giấy hẹn, Mẫu 02 Phiếu yêu cầu bổ sung, Mẫu 04 Giấy xin lỗi, Mẫu 05 Phiếu kiểm soát).
+- **Công việc đã hoàn thiện & kiểm chứng:**
+  1. **Design System & Tiêu chuẩn Phông chữ Công vụ:**
+     - Tích hợp bộ phông chữ `Be Vietnam Pro` tiếng Việt hiện đại định dạng WOFF2 cục bộ trong `public/assets/fonts/`, phục vụ chuẩn chỉ trên mạng TSLCD không Internet.
+     - Bảo đảm 100% View template có `<meta charset="UTF-8">`, bổ sung cache buster `?v=2` trên toàn bộ liên kết CSS/JS để triệt tiêu bộ nhớ đệm trình duyệt cũ.
+     - Bảng màu công vụ chuẩn mực trong `public/assets/css/tokens.css`:
+       + Primary: Xanh dương hành chính uy tín (`#0b3a75` - `#1e40af`).
+       + Success: Xanh ngọc hoàn thành (`#15803d` - `#16a34a`).
+       + Warning: Vàng hổ phách cảnh báo SLA (`#b45309` - `#d97706`).
+       + Danger: Đỏ thẩm quyền / Quá hạn SLA (`#b91c1c` - `#dc2626`).
+       + Background dịu mắt: `#f8fafc`, bo góc nhẹ, viền tinh tế, chống mỏi mắt cho cán bộ ngồi máy 8 tiếng.
+  2. **Cấu trúc Bàn làm việc Công chức (Workstation UI):**
+     - **Header / Topbar (`app/Views/partials/topbar.php`):** Hiển thị rõ Tên cơ quan chủ quản (`UBND TP. HẢI PHÒNG`), Đơn vị bộ phận trực thuộc, Họ tên cán bộ, Huy hiệu vai trò nghiệp vụ (`MOT_CUA`, `CHUYEN_VIEN`...), Chuông thông báo công việc cần xử lý gấp kèm số đếm động.
+     - **Sidebar Phân quyền RBAC (`app/Views/partials/sidebar.php`):** Tự động truy vấn số lượng hồ sơ chờ xử lý thời gian thực và gắn Badge số đếm nổi bật cho từng mục thực đơn tương ứng với vai trò đăng nhập.
+     - **Khu vực Thống kê KPI:** 4 thẻ KPI trực quan (`.card-dashboard`): Hồ sơ mới tiếp nhận, Đang giải quyết trong hạn, Cảnh báo sắp quá hạn Vàng, Quá hạn Đỏ.
+     - **Hệ thống Grid & Lưới dữ liệu (`public/assets/css/components.css`):** Bổ sung Workstation Grid (`.row`, `.col-md-*`, `.g-2`, `.g-3`), tab pills chuyển đổi trạng thái hồ sơ, bộ lọc đa tiêu chí, phân trang và Badge SLA màu sắc rõ ràng.
+  3. **Chuẩn hóa Biểu mẫu Thể thức Văn bản (NĐ 30/2020/NĐ-CP & TT 01/2018):**
+     - **Mẫu số 01 Giấy tiếp nhận & Hẹn trả (`app/Views/admin/mot_cua/in_giay_hen.php`):** Trình bày chuẩn khung A4, Quốc hiệu, Tiêu ngữ, Tên cơ quan, Mã số hồ sơ, Mã QR tra cứu tiến độ tự động, Bảng thành phần hồ sơ và cam kết thời gian.
+     - **Chế độ In ấn Chuyên nghiệp (`public/assets/css/print.css` & `@media print`):** Căn chỉnh lề trang A4 chuẩn (Lề trên/dưới 20mm, lề trái 30mm, lề phải 15mm), tự động ẩn toàn bộ header, sidebar, nút bấm khi in tài liệu.
+     - **Route Aliases Thuận tiện (`routes/web.php`):** Hỗ trợ đường dẫn thân thiện `/admin/thu-ly/hop-viec` và `/admin/ho-so/{id}/in-phieu-hen`.
+     - Sửa lỗi cú pháp LaTeX `$\ge 300\text{ DPI}$` sang ký tự chuẩn `≥ 300 DPI` trong view tiếp nhận.
+  4. **Kiểm chứng Thực tế bằng Tự động hóa Trình duyệt (Chrome CDP):**
+     - Xây dựng kịch bản `tests/screenshot_runner.js` điều khiển Chrome qua CDP WebSocket, đăng nhập và chụp ảnh 4 màn hình trọng điểm làm minh chứng:
+       + `phien3_01_dashboard_workstation.png`: Dashboard bàn làm việc công chức với 4 thẻ KPI và bảng hồ sơ.
+       + `phien3_02_hop_viec_thu_ly.png`: Hộp việc thụ lý chuyên viên với 6 tabs phân loại hồ sơ.
+       + `phien3_03_mot_cua_tiep_nhan.png`: Màn hình tiếp nhận một cửa quét QR CCCD chip và đính kèm giấy tờ.
+       + `phien3_04_in_phieu_hen_mau01.png`: Mẫu in Giấy hẹn Mẫu 01 chuẩn A4 kèm Mã QR tra cứu.
+     - **Kiểm tra Browser Console:** 100% sạch (0 lỗi JavaScript, 0 cảnh báo thiếu file CSS/Font).
+     - **Kiểm thử Toàn hệ thống:** 128/128 PHPUnit tests PASSED (100%).
+- **Tệp tin đã tạo/cập nhật:**
+  - `public/assets/css/tokens.css` (Cập nhật màu sắc công vụ)
+  - `public/assets/css/components.css` (Bổ sung Workstation UI, Grid, KPI cards, Tabs)
+  - `app/Views/layouts/admin.php`, `auth.php`, `portal.php`, `print.php` (Nhúng Be Vietnam Pro WOFF2, cache buster ?v=2)
+  - `app/Views/partials/topbar.php` (Cập nhật cơ quan chủ quản, chức danh, chuông thông báo)
+  - `app/Views/partials/sidebar.php` (Gắn badge số lượng hồ sơ thời gian thực)
+  - `app/Views/admin/mot_cua/in_giay_hen.php` (Chuẩn hóa Mẫu số 01 TT 01/2018 và QR tra cứu)
+  - `app/Views/admin/mot_cua/tiep_nhan.php` (Sửa lỗi hiển thị DPI)
+  - `app/Controllers/Admin/MotCuaController.php` (Mở quyền xem in giấy hẹn cho cán bộ công chức)
+  - `routes/web.php` (Thêm route aliases)
+  - `tests/screenshot_runner.js` (Script tự động hóa chụp ảnh kiểm chứng qua CDP)
+  - `docs/PROGRESS.md` (Cập nhật)
+
 
 
 

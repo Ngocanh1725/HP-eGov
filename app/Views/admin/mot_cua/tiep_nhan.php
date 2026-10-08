@@ -171,7 +171,7 @@
                                            accept=".pdf,.jpg,.jpeg,.png"
                                            onchange="simulateOcrOnSelect(this, <?= $tp['id'] ?>, '<?= addslashes(e($tp['ten_giay_to'])) ?>')"
                                            style="font-size: 0.8rem; padding: 0.25rem 0.5rem;">
-                                    <small class="text-muted" style="font-size: 0.7rem;">Khuyến nghị file PDF/Scan độ phân giải $\ge 300\text{ DPI}$</small>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Khuyến nghị file PDF/Scan độ phân giải ≥ 300 DPI (Nghị định 107/2021/NĐ-CP)</small>
                                 </div>
                             </div>
                         </div>

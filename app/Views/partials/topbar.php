@@ -5,28 +5,34 @@
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
 
-        <div class="unit-node-badge" title="Đơn vị và bộ phận công tác hiện tại">
+        <div class="unit-node-badge" title="Cơ quan chủ quản và Bộ phận công tác">
             <?php 
                 $curDv = current_don_vi();
                 $dvList = \App\Services\AuthService::donViList();
             ?>
-            <?php if (count($dvList) > 1): ?>
-                <div class="dropdown" style="display:inline-block;">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-dropdown-toggle style="font-size:0.8rem; padding: 2px 8px; border:none; background:none; color:inherit; font-weight:600; cursor:pointer;">
-                        <span>🏢 <?= e($curDv['ten_don_vi'] ?? 'Đơn vị công tác') ?> ▾</span>
-                    </button>
-                    <div class="dropdown-menu">
-                        <div class="dropdown-header">Chuyển đơn vị làm việc kiêm nhiệm:</div>
-                        <?php foreach ($dvList as $dv): ?>
-                            <a href="<?= e(url('/admin/chuyen-don-vi/' . $dv['id'])) ?>" class="dropdown-item <?= ((int)$dv['id'] === (int)($curDv['id'] ?? 0)) ? 'active fw-bold' : '' ?>">
-                                <?= e($dv['ten_don_vi']) ?>
-                            </a>
-                        <?php endforeach; ?>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-weight:700; color:var(--color-primary); font-size:0.825rem; letter-spacing:0.3px; text-transform:uppercase;">
+                    UBND TP. HẢI PHÒNG
+                </span>
+                <span style="color:var(--border-color); font-weight:300;">|</span>
+                <?php if (count($dvList) > 1): ?>
+                    <div class="dropdown" style="display:inline-block;">
+                        <button type="button" class="btn btn-sm" data-dropdown-toggle style="font-size:0.825rem; padding: 2px 6px; border:none; background:var(--bg-muted); color:var(--text-main); font-weight:600; cursor:pointer; border-radius:4px;">
+                            <span>🏢 <?= e($curDv['ten_don_vi'] ?? 'Đơn vị công tác') ?> ▾</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">Chuyển đơn vị làm việc kiêm nhiệm:</div>
+                            <?php foreach ($dvList as $dv): ?>
+                                <a href="<?= e(url('/admin/chuyen-don-vi/' . $dv['id'])) ?>" class="dropdown-item <?= ((int)$dv['id'] === (int)($curDv['id'] ?? 0)) ? 'active fw-bold' : '' ?>">
+                                    <?= e($dv['ten_don_vi']) ?>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
-                </div>
-            <?php else: ?>
-                <span>🏢 <?= e($curDv['ten_don_vi'] ?? 'UBND TP. Hải Phòng') ?></span>
-            <?php endif; ?>
+                <?php else: ?>
+                    <span style="font-weight:600; font-size:0.825rem; color:var(--text-main);">🏢 <?= e($curDv['ten_don_vi'] ?? 'UBND Quận Hồng Bàng') ?></span>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 

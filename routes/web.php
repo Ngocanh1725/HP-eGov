@@ -222,6 +222,7 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::post('/mot-cua/api/verify-cccd', [MotCuaController::class, 'apiVerifyCccd'])->name('admin.motcua.verifyCccd');
         Router::post('/mot-cua/tiep-nhan', [MotCuaController::class, 'submitTiepNhan'])->name('admin.motcua.submitTiepNhan');
         Router::get('/mot-cua/in-giay-hen/{id:\d+}', [MotCuaController::class, 'inGiayHen'])->name('admin.motcua.inGiayHen');
+        Router::get('/ho-so/{id:\d+}/in-phieu-hen', [MotCuaController::class, 'inGiayHen'])->name('admin.hoso.inPhieuHen');
 
         // Hồ sơ trực tuyến chờ tiếp nhận
         Router::get('/mot-cua/truc-tuyen', [MotCuaController::class, 'danhSachTrucTuyen'])->name('admin.motcua.hoSoTrucTuyen');
@@ -246,6 +247,7 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         // PH03: Phân hệ Thụ lý & Phối hợp Liên thông (CHUYEN_VIEN, LD_PHONG)
         // ====================================================================
         Router::get('/thu-ly', [ThuLyController::class, 'inbox'])->name('admin.thuly.inbox');
+        Router::get('/thu-ly/hop-viec', [ThuLyController::class, 'inbox'])->name('admin.thuly.hop_viec');
         Router::get('/thu-ly/danh-sach', [ThuLyController::class, 'inbox']);
         Router::get('/thu-ly/lien-thong', function () {
             return Response::redirect(url('/admin/thu-ly', ['tab' => 'phoi_hop']));

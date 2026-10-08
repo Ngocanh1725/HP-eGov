@@ -8,9 +8,9 @@
  */
 
 :root {
-    /* Màu thương hiệu & Bản sắc Hải Phòng */
-    --color-primary: #0B2E59;         /* Navy chủ đạo - uy nghiêm, vững chãi */
-    --color-primary-light: #164682;   /* Navy sáng */
+    /* Màu thương hiệu & Bản sắc Hải Phòng (Chuẩn công vụ cao cấp) */
+    --color-primary: #0b3a75;         /* Navy chủ đạo uy tín - uy nghiêm, vững chãi */
+    --color-primary-light: #1e40af;   /* Xanh dương hành chính sáng */
     --color-primary-dark: #071F3D;    /* Navy tối */
     --color-primary-subtle: #E8EEF5;  /* Navy siêu nhạt (nền badge/active) */
 
@@ -19,30 +19,34 @@
     --color-accent-gold: #D4A017;     /* Vàng kim hành chính */
     --color-accent-gold-subtle: #FFF9E6;
 
-    /* Màu kiểm soát tiến độ SLA (§2.2) */
-    --color-sla-green: #16A34A;       /* XANH: Đúng hạn, an toàn */
+    /* Màu kiểm soát tiến độ SLA & Trạng thái công vụ */
+    --color-success: #15803d;         /* Xanh ngọc hoàn thành */
+    --color-warning: #b45309;         /* Vàng hổ phách cảnh báo SLA */
+    --color-danger: #b91c1c;          /* Đỏ thẩm quyền / Quá hạn SLA */
+
+    --color-sla-green: #15803d;       /* XANH: Hoàn thành / Đúng hạn an toàn */
     --color-sla-green-subtle: #DCFCE7;
-    --color-sla-yellow: #F59E0B;      /* VÀNG: Cảnh báo sắp đến hạn */
+    --color-sla-yellow: #b45309;      /* VÀNG: Cảnh báo sắp quá hạn SLA */
     --color-sla-yellow-subtle: #FEF3C7;
-    --color-sla-red: #DC2626;         /* ĐỎ: Quá hạn - bắt buộc Mẫu 04 */
+    --color-sla-red: #b91c1c;         /* ĐỎ: Quá hạn SLA - Bắt buộc Mẫu số 04 */
     --color-sla-red-subtle: #FEE2E2;
 
     /* Màu trạng thái hồ sơ (9 trạng thái Thông tư 01/2018) */
     --color-status-cho-tiep-nhan: #0284C7;
     --color-status-moi-tiep-nhan: #2563EB;
-    --color-status-dang-xu-ly: #D97706;
+    --color-status-dang-xu-ly: #d97706;
     --color-status-cho-bo-sung: #EA580C;
     --color-status-cho-phe-duyet: #7C3AED;
-    --color-status-hoan-thanh: #16A34A;
+    --color-status-hoan-thanh: #15803d;
     --color-status-da-tra-kq: #059669;
-    --color-status-tu-choi: #DC2626;
+    --color-status-tu-choi: #b91c1c;
     --color-status-da-huy: #6B7280;
 
-    /* Thang màu trung tính (Neutral - Chế độ sáng) */
-    --bg-body: #F4F6FA;
+    /* Thang màu trung tính (Neutral - Chế độ sáng dịu mắt, làm việc 8h không mỏi) */
+    --bg-body: #f8fafc;
     --bg-surface: #FFFFFF;
     --bg-surface-elevated: #FFFFFF;
-    --bg-sidebar: #0B2E59;
+    --bg-sidebar: #0b3a75;
     --bg-topbar: #FFFFFF;
     --bg-muted: #F1F5F9;
     --bg-hover: #F8FAFC;

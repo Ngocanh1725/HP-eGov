@@ -1,3 +1,21 @@
+<?php
+// Lấy số liệu hồ sơ chờ xử lý thời gian thực cho Sidebar Badge
+$sidebarStats = [
+    'truc_tuyen' => 0,
+    'dang_xu_ly' => 0,
+    'cho_ky' => 0,
+    'qua_han' => 0,
+];
+try {
+    $dbSb = \App\Core\Database::connection();
+    $sidebarStats['truc_tuyen'] = (int)$dbSb->query("SELECT COUNT(*) FROM ho_so WHERE kenh_nop = 'TRUC_TUYEN' AND trang_thai = 'CHO_TIEP_NHAN' AND is_deleted = 0")->fetchColumn();
+    $sidebarStats['dang_xu_ly'] = (int)$dbSb->query("SELECT COUNT(*) FROM ho_so WHERE trang_thai IN ('DANG_XU_LY', 'THU_LY', 'MOI_TIEP_NHAN') AND is_deleted = 0")->fetchColumn();
+    $sidebarStats['cho_ky'] = (int)$dbSb->query("SELECT COUNT(*) FROM ho_so WHERE trang_thai = 'CHO_PHE_DUYET' AND is_deleted = 0")->fetchColumn();
+    $sidebarStats['qua_han'] = (int)$dbSb->query("SELECT COUNT(*) FROM ho_so WHERE sla_mau = 'DO' AND trang_thai NOT IN ('HOAN_THANH', 'DA_TRA_KQ', 'TU_CHOI', 'DA_HUY') AND is_deleted = 0")->fetchColumn();
+} catch (\Throwable $e) {
+    // Fallback nếu kết nối lỗi
+}
+?>
 <!-- Sidebar Cán bộ hành chính HP-eGov (Collapsible) -->
 <aside class="admin-sidebar" id="adminSidebar">
     <a href="<?= e(url('/admin/dashboard')) ?>" class="sidebar-brand">
@@ -43,6 +61,9 @@
                 <a href="<?= e(url('/admin/mot-cua/truc-tuyen')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/mot-cua/truc-tuyen')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">🌐</span>
                     <span class="sidebar-text">Hồ sơ trực tuyến</span>
+                    <?php if ($sidebarStats['truc_tuyen'] > 0): ?>
+                        <span class="badge" style="background:var(--color-primary-light); color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:auto;"><?= $sidebarStats['truc_tuyen'] ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
             <li class="sidebar-item">
@@ -63,6 +84,9 @@
                 <a href="<?= e(url('/admin/thu-ly')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/thu-ly') && !str_contains($_SERVER['REQUEST_URI'] ?? '', 'tab=phoi_hop')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">📂</span>
                     <span class="sidebar-text">Hộp việc Thụ lý</span>
+                    <?php if ($sidebarStats['dang_xu_ly'] > 0): ?>
+                        <span class="badge" style="background:#2563eb; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:auto;"><?= $sidebarStats['dang_xu_ly'] ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
             <li class="sidebar-item">
@@ -83,6 +107,9 @@
                 <a href="<?= e(url('/admin/phe-duyet/co-quan')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/phe-duyet/co-quan')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">✍️</span>
                     <span class="sidebar-text">Ký phát hành (Cơ quan)</span>
+                    <?php if ($sidebarStats['cho_ky'] > 0): ?>
+                        <span class="badge" style="background:#7c3aed; color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:auto;"><?= $sidebarStats['cho_ky'] ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
 
@@ -91,6 +118,9 @@
                 <a href="<?= e(url('/admin/sla/danh-sach-qua-han')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/sla/')) ? 'active' : '' ?>">
                     <span class="sidebar-icon">⏱️</span>
                     <span class="sidebar-text">Quá hạn & Mẫu số 04</span>
+                    <?php if ($sidebarStats['qua_han'] > 0): ?>
+                        <span class="badge" style="background:var(--color-danger); color:#fff; font-size:11px; padding:2px 7px; border-radius:10px; margin-left:auto;"><?= $sidebarStats['qua_han'] ?></span>
+                    <?php endif; ?>
                 </a>
             </li>
             <li class="sidebar-item">

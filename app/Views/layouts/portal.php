@@ -7,7 +7,8 @@
     <meta name="description" content="<?= e($description ?? 'Hệ thống thông tin giải quyết thủ tục hành chính & Một cửa điện tử liên thông TP. Hải Phòng') ?>">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
-    <!-- Design System CSS (100% Cục bộ) -->
+    <!-- Design System CSS & Phông chữ Tiếng Việt Cục bộ (Chuẩn TSLCD, không dùng CDN) -->
+    <link rel="stylesheet" href="<?= e(asset('fonts/be-vietnam-pro.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">

@@ -7,6 +7,7 @@
     <meta name="description" content="Đăng nhập Cổng Dịch vụ công & Một cửa điện tử liên thông TP. Hải Phòng">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
+    <link rel="stylesheet" href="<?= e(asset('fonts/be-vietnam-pro.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/components.css')) ?>">

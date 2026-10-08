@@ -12,6 +12,7 @@
 !/storage/keys/.gitkeep
 /storage/cache/*
 !/storage/cache/.gitkeep
+/storage/temp_chrome*
 
 # OS / Editor temporary files
 Thumbs.db

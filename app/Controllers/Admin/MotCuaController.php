@@ -373,7 +373,9 @@ class MotCuaController extends Controller
      */
     public function inGiayHen(Request $request): Response
     {
-        $this->authorizeMotCua();
+        if (!AuthService::check('can_bo')) {
+            return $this->redirect('/admin/dang-nhap');
+        }
         $id = (int)$request->routeParam('id', 0);
         $db = Database::connection();
 

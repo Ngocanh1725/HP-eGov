@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle) ?></title>
+    <link rel="stylesheet" href="<?= e(asset('fonts/be-vietnam-pro.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/print.css')) ?>">
     <style>
         * { box-sizing: border-box; }
         body {
@@ -108,12 +111,12 @@
             width: 50%;
         }
         .qr-section {
-            position: absolute;
-            bottom: 25mm;
-            left: 20mm;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px dashed #000;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
         @media print {
             body { background: #fff; padding: 0; }
@@ -268,7 +271,7 @@
     </div>
 </div>
 
-<script src="<?= e(url('/assets/vendor/qrcode/qrcode.min.js')) ?>"></script>
+<script src="<?= e(asset('vendor/qrcode/qrcode.min.js')) ?>"></script>
 <script>
 window.addEventListener('DOMContentLoaded', function() {
     new QRCode(document.getElementById("qrcode"), {

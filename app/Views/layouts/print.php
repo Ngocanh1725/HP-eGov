@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title ?? 'In văn bản hành chính') ?> | HP-eGov Hải Phòng</title>
-    
+    <link rel="stylesheet" href="<?= e(asset('fonts/be-vietnam-pro.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/tokens.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/base.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/print.css')) ?>">
