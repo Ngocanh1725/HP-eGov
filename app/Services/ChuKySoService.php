@@ -75,6 +75,13 @@ class ChuKySoService
         $existingCert = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existingCert && file_exists($keyPath) && file_exists($certPath)) {
+            $diskPem = (string)file_get_contents($certPath);
+            if (empty($existingCert['public_cert_pem']) || str_contains($existingCert['public_cert_pem'], 'DEMO_') || $existingCert['public_cert_pem'] !== $diskPem) {
+                $db->prepare("UPDATE chung_thu_so SET public_cert_pem = :pem WHERE id = :id")->execute([
+                    ':pem' => $diskPem,
+                    ':id'  => $existingCert['id']
+                ]);
+            }
             return [
                 'private_key_path' => $keyPath,
                 'cert_path'        => $certPath,
@@ -165,6 +172,13 @@ class ChuKySoService
         $existingCert = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existingCert && file_exists($keyPath) && file_exists($certPath)) {
+            $diskPem = (string)file_get_contents($certPath);
+            if (empty($existingCert['public_cert_pem']) || str_contains($existingCert['public_cert_pem'], 'DEMO_') || $existingCert['public_cert_pem'] !== $diskPem) {
+                $db->prepare("UPDATE chung_thu_so SET public_cert_pem = :pem WHERE id = :id")->execute([
+                    ':pem' => $diskPem,
+                    ':id'  => $existingCert['id']
+                ]);
+            }
             return [
                 'private_key_path' => $keyPath,
                 'cert_path'        => $certPath,
