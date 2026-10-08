@@ -173,6 +173,21 @@ class Response
     }
 
     /**
+     * Tải xuống trực tiếp từ chuỗi nội dung trong bộ nhớ (VD: CSV động)
+     */
+    public static function downloadContent(string $content, string $filename, string $contentType = 'text/csv; charset=UTF-8'): static
+    {
+        $res = new static($content, 200);
+        $cleanName = preg_replace('/[^\w\.\-\s_]/u', '_', $filename);
+        $res->setHeader('Content-Type', $contentType);
+        $res->setHeader('Content-Disposition', 'attachment; filename="' . rawurlencode($cleanName) . '"');
+        $res->setHeader('Content-Length', (string)strlen($content));
+        $res->setHeader('Pragma', 'no-cache');
+        $res->setHeader('Expires', '0');
+        return $res;
+    }
+
+    /**
      * Gửi toàn bộ headers và output về Client
      */
     public function send(): void

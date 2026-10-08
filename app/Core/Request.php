@@ -29,8 +29,28 @@ class Request
     /** @var array<string, mixed> Mảng tham số định tuyến từ URL */
     private array $routeParams = [];
 
-    /** @var array<string, mixed>|null Dữ liệu JSON body sau khi parse */
+    /** @var array<string, mixed> Dữ liệu JSON body sau khi parse */
     private ?array $jsonBody = null;
+
+    /** @var array<string, mixed> Thuộc tính tùy biến truyền qua middleware */
+    private array $attributes = [];
+
+    /**
+     * Gán thuộc tính tùy biến cho request
+     */
+    public function setAttribute(string $key, mixed $value): static
+    {
+        $this->attributes[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * Lấy thuộc tính tùy biến từ request
+     */
+    public function getAttribute(string $key, mixed $default = null): mixed
+    {
+        return $this->attributes[$key] ?? $default;
+    }
 
     /**
      * Khởi tạo Request từ các biến siêu toàn cục của PHP

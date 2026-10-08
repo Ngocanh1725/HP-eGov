@@ -25,7 +25,7 @@
 | **11** | **SLA Engine & Thông báo đa kênh** | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi ký số OpenSSL, Outbox queue SMS/Zalo/Email, Quản trị mẫu tin & Hộp thư mô phỏng | **Hoàn thành** | 2026-10-07 | PH06, PH07, `SlaEngine.php`, `cron/sla_scan.php`, `cron/notify_dispatch.php`, `ThongBaoService.php`, `SlaController.php`, `ThongBaoController.php`, `SlaEngineTest.php`, `SlaNotificationIntegrationTest.php` |
 | **12** | **Dashboard chỉ đạo điều hành & Báo cáo** | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện SVG, xếp hạng thi đua, bottleneck, báo cáo TT 01, NĐ 107, SIPAS, xuất CSV & in A4 | **Hoàn thành** | 2026-10-07 | PH08, `ReportingService.php`, `DashboardController.php`, `BaoCaoController.php`, `tests/Unit/ReportingServiceTest.php` |
 | **13** | **Quản trị & Vận hành hệ thống** | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | **Hoàn thành** | 2026-10-08 | PH12, PH13, PH15, Backup/Restore XAMPP, Health, BCP/DRP, Đào tạo, `docs/05_QUY_CHE_VAN_HANH.md` |
-| **14** | Chuyển đổi dữ liệu ETL, Tích hợp & API | ETL 4 bước (checksum SHA-256), REST API /api/v1, Webhook LGSP, tài liệu API | *Chưa làm* | - | Kế hoạch: PH14, `EtlService.php`, `docs/06_API.md` |
+| **14** | **Chuyển đổi dữ liệu ETL, Tích hợp & API** | ETL 4 bước (checksum SHA-256), REST API /api/v1, Webhook LGSP HMAC, Quản trị 9 kết nối, tài liệu API | **Hoàn thành** | 2026-10-08 | PH14, `EtlService.php`, `docs/06_API.md`, `tests/Integration/EtlAndRestApiTest.php` |
 | **15** | Kiểm thử toàn diện & QA/QC | Unit, Integration liên thông, Security OWASP Top 10, k6/JMeter tải, UAT | *Chưa làm* | - | Kế hoạch: `tests/*`, `docs/07_KE_HOACH_KIEM_THU.md` |
 | **16** | Clean code, Hardening & Bàn giao | Rà soát PSR-12, CSP, user MySQL tối thiểu, README, HDSD 7 vai trò, Git tag v1.0.0 | *Chưa làm* | - | Kế hoạch: `README.md`, `docs/10_HDSD_*`, `git tag v1.0.0` |
 
@@ -654,7 +654,56 @@
   - `app/Core/App.php`, `routes/web.php`, `routes/api.php`, `app/Views/partials/sidebar.php`, `app/Views/partials/breadcrumb.php`, `app/Views/layouts/admin.php`, `app/Views/layouts/portal.php`
   - `docs/05_QUY_CHE_VAN_HANH.md`, `tests/Integration/QuanTriVanHanhTest.php`
 - **Kế hoạch cho Phiên 14:**
-  - Thực hiện **Phiên 14/16 – ETL, Tích hợp & API (PH11, PH14 – §1.1, §1.3)**: Pipeline ETL 4 bước (Extract, Staging & Profiling, Transform, Load & Verify) chuyển đổi dữ liệu Một cửa cũ 5 năm; REST API & Webhook tích hợp LGSP, C06, PayGov; Tài liệu `docs/06_DAC_TA_TICH_HOP_API.md`.
+  - Hoàn thành xuất sắc toàn bộ nội dung Phiên 14 theo yêu cầu.
+
+---
+
+### PHIÊN 14: CHUYỂN ĐỔI DỮ LIỆU ETL, QUẢN TRỊ TÍCH HỢP & REST API /API/V1
+- **Thời gian hoàn thành:** 2026-10-08
+- **Công việc đã thực hiện:**
+  1. **Quy trình ETL Pipeline 4 bước đúng Báo cáo (§1.3.A, §1.1):**
+     - **Tệp mẫu dữ liệu 5 năm gần nhất:** Cung cấp 2 bộ dữ liệu mô phỏng xuất từ CSDL Một cửa cũ (`database/etl_samples/sample_mssql_cu.csv` và `sample_mysql_cu.csv`) kèm thư mục tệp đính kèm (`database/etl_samples/attachments/`). Dữ liệu chủ động chứa các dạng "dữ liệu bẩn": hồ sơ trùng lặp, thiếu CCCD, sai độ dài CCCD/CMND, mã TTHC/ĐVHC cũ chưa chuẩn hóa, chuỗi rác có ký tự injection/XSS.
+     - **Bước 1 - Extract:** Tải lên tệp CSV cũ (hoặc chọn tệp mẫu có sẵn trên hệ thống) + chỉ định đường dẫn tệp đính kèm. Khởi tạo phiên chuyển đổi trong `etl_lo`.
+     - **Bước 2 - Staging & Profiling:** Nạp nguyên trạng vào bảng tạm `etl_staging_ho_so`. Hệ thống tự động phân tích và lập báo cáo hồ sơ lỗi/chất lượng dữ liệu: phát hiện trường rác, hồ sơ trùng lặp, thiếu số định danh cá nhân, mã TTHC/ĐVHC không hợp lệ; ghi nhận vào `etl_loi`.
+     - **Bước 3 - Transform:** Ánh xạ mã TTHC cũ sang mã TTHC quốc gia (`etl_anh_xa_tthc`), mã ĐVHC cũ sang mã Tổng cục Thống kê (`etl_anh_xa_dvhc`) với giao diện quản trị cho phép tùy biến trực tiếp. Chuẩn hóa ngày tháng định dạng chuẩn ISO `Y-m-d H:i:s`, chuẩn hóa họ tên dạng Title Case, chuẩn hóa trạng thái hồ sơ theo hệ thống mới, đánh dấu tự động cờ cần chuyển đổi PDF/A-1b đối với các tệp scan cũ.
+     - **Bước 4 - Load & Verify:** Nạp vào bảng chính (`ho_so`, `ho_so_tai_lieu`, `ho_so_luan_chuyen`) trong Transaction theo từng lô (Batch chunking 50 bản ghi/lần) để chống nghẽn và timeout máy chủ PHP. Tính toán và đối soát 100% mã băm SHA-256 đối với tệp đính kèm (`storage/ho_so/`). Báo cáo tổng kết số lượng Thành công / Lỗi / Bỏ qua và cho phép xuất danh sách lỗi chi tiết ra file CSV phục vụ đối soát.
+  2. **Quản trị Cổng Tích hợp & Kết nối liên thông (§1.1, §2.3):**
+     - **Danh sách 9 dịch vụ nền tảng:** VNeID, LGSP Hải Phòng, C06 (CSDLQG Dân cư), CSDL TTHC QG, SmartCA (Ký số từ xa), SMS Brandname, Zalo ZNS, VNPost (Bưu chính công ích), ClamAV (Quét mã độc).
+     - **Quản lý cấu hình & Chế độ vận hành:** Bảng CSDL `cau_hinh_tich_hop`, cho phép chuyển đổi linh hoạt giữa chế độ `MOCK` và `LIVE`, cấu hình Endpoint, API Key / Secret Key, Timeout kết nối, Headers bổ sung.
+     - **Chức năng Kiểm tra kết nối (Ping test):** Nút kiểm tra từng dịch vụ hoặc kiểm tra đồng loạt toàn bộ 9 cổng, đo độ trễ mạng thực tế (latency ms), cập nhật trạng thái kết nối (`HOAT_DONG`, `LOI_KET_NOI`).
+     - **Nhật ký & Thống kê tích hợp thời gian thực:** Thống kê tổng số lượt gọi, tỷ lệ lỗi (%), độ trễ trung bình, lần gọi gần nhất; hiển thị trực quan bảng 20 giao dịch kết nối mới nhất từ `nhat_ky_tich_hop`.
+  3. **REST API `/api/v1` Chuẩn hóa & An toàn bảo mật:**
+     - **Chuẩn hóa kiến trúc:** RESTful JSON, định dạng phản hồi thống nhất `{status, code, message, data, timestamp}`. Mã lỗi HTTP chuẩn (200, 400, 401, 403, 404, 429, 500).
+     - **Xác thực Bearer Token:** Quản lý bảng `api_tokens`, lưu trữ mã băm SHA-256 an toàn, kiểm tra thời hạn sử dụng (`het_han_luc`), phân quyền theo Scopes (`tra_cuu`, `thu_tuc`, `cong_dan`, `lanh_dao`, `webhook`).
+     - **Bảo mật & Giới hạn tần suất:** Rate Limit áp dụng 60 requests/phút theo IP/Token (trả về HTTP 429 kèm header `Retry-After`), Middleware bảo mật Security Headers.
+     - **Danh sách Endpoints triển khai:**
+       * `GET /api/v1/health`: Kiểm tra trạng thái hoạt động của hệ thống (Công khai).
+       * `GET /api/v1/tra-cuu/{ma_ho_so}`: Tra cứu thông tin tiến độ hồ sơ công khai tối thiểu (ẩn CCCD/SĐT bảo mật cá nhân).
+       * `GET /api/v1/danh-muc-tthc`: Tra cứu danh mục thủ tục hành chính công (hỗ trợ phân trang và tìm kiếm từ khóa).
+       * `GET /api/v1/cong-dan/ho-so`: Lấy danh sách hồ sơ của công dân (Scope `cong_dan`, tự động lọc theo CCCD, chống IDOR).
+       * `GET /api/v1/cong-dan/ho-so/{ma_ho_so}`: Xem chi tiết hồ sơ công dân (chặn tuyệt đối việc truy cập hồ sơ công dân khác).
+       * `GET /api/v1/lanh-dao/cho-ky`: Danh sách hồ sơ chờ ký duyệt dành cho Mobile App Lãnh đạo (Scope `lanh_dao`).
+       * `POST /api/v1/lanh-dao/ky-so`: Thực hiện ký số từ xa bằng SmartCA / OpenSSL từ thiết bị di động (xác thực mã PIN SmartCA).
+       * `POST /api/v1/webhook/lgsp`: Tiếp nhận kết quả liên thông từ Trục LGSP TP. Hải Phòng (xác thực nghiêm ngặt chữ ký số HMAC-SHA256 qua header `X-LGSP-Signature`).
+  4. **Tài liệu Đặc tả API (`docs/06_API.md`):**
+     - Hoàn thiện tài liệu đặc tả OpenAPI/RESTful V1 chi tiết: Cấu trúc xác thực Bearer Token, cơ chế Rate Limit, mã trạng thái HTTP, mẫu cURL kiểm thử cho từng endpoint, thuật toán sinh chữ ký HMAC-SHA256 cho Webhook.
+  5. **Kiểm thử Tự động & Giao diện người dùng:**
+     - **Tập kiểm thử tích hợp (`tests/Integration/EtlAndRestApiTest.php`):** 8 test cases hoàn chỉnh kiểm tra luồng ETL 4 bước với dữ liệu bẩn, tra cứu công khai, từ chối Token sai (401), từ chối sai Scope (403), kiểm tra chống IDOR công dân, Mobile App Lãnh đạo, kiểm tra chữ ký Webhook HMAC hợp lệ và không hợp lệ, kiểm tra Ping kết nối 9 dịch vụ.
+     - **Toàn bộ Test Suite:** **91/91 tests passed 100%** (`tests/run.php`).
+     - **Kiểm tra giao diện:** Giao diện Quản trị ETL Wizard 4 bước (`/admin/he-thong/etl`) và Cổng Tích hợp 9 dịch vụ (`/admin/he-thong/tich-hop`) hoạt động mượt mà, đầy đủ KPI, tương tác Ping test trực quan.
+- **Tệp tin đã tạo/cập nhật:**
+  - `database/migrations_session14.sql`, `database/schema.sql`, `database/seeders/Session14Seeder.php`
+  - `database/etl_samples/sample_mssql_cu.csv`, `database/etl_samples/sample_mysql_cu.csv`, `database/etl_samples/attachments/*`
+  - `app/Services/EtlService.php`, `app/Services/ApiTokenService.php`, `app/Services/IntegrationService.php`
+  - `app/Middleware/ApiAuthMiddleware.php`, `app/Core/Pipeline.php`, `app/Core/Request.php`, `app/Core/Response.php`
+  - `app/Controllers/Api/ApiController.php`, `app/Controllers/Api/PublicApiController.php`, `app/Controllers/Api/CitizenApiController.php`, `app/Controllers/Api/LeaderApiController.php`, `app/Controllers/Api/WebhookController.php`
+  - `app/Controllers/Admin/EtlController.php`, `app/Controllers/Admin/TichHopController.php`
+  - `app/Views/admin/he_thong/etl.php`, `app/Views/admin/he_thong/etl_anh_xa.php`, `app/Views/admin/he_thong/tich_hop.php`
+  - `routes/web.php`, `routes/api.php`, `app/Views/partials/sidebar.php`
+  - `docs/06_API.md`, `tests/Integration/EtlAndRestApiTest.php`, `tests/Unit/RouterTest.php`
+- **Kế hoạch cho Phiên 15:**
+  - Thực hiện **Phiên 15/16 – Kiểm thử toàn diện & Đảm bảo chất lượng QA/QC**: Kế hoạch kiểm thử `docs/07_KE_HOACH_KIEM_THU.md`, kiểm thử tự động End-to-End toàn diện, kiểm thử an toàn thông tin OWASP Top 10 (SQLi, XSS, CSRF, IDOR, File Upload, Brute-force), kịch bản kiểm thử tải mô phỏng bằng k6/JMeter, biên bản nghiệm thu kỹ thuật UAT.
+
 
 
 

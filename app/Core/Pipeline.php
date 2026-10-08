@@ -26,6 +26,7 @@ class Pipeline
         'permission'       => \App\Middleware\PermissionMiddleware::class,
         'can'              => \App\Middleware\PermissionMiddleware::class,
         'data_scope'       => \App\Middleware\DataScopeMiddleware::class,
+        'api_auth'         => \App\Middleware\ApiAuthMiddleware::class,
     ];
 
     /**

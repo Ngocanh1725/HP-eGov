@@ -81,4 +81,11 @@ class RouterTest
         $generated = route('portal.tra_cuu', ['ma_ho_so' => '000-260115-0042']);
         TestRunner::assertContains('/tra-cuu/000-260115-0042', $generated);
     }
+
+    public function tearDown(): void
+    {
+        Router::clear();
+        require dirname(__DIR__, 2) . '/routes/web.php';
+        require dirname(__DIR__, 2) . '/routes/api.php';
+    }
 }

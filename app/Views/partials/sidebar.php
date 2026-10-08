@@ -311,6 +311,18 @@
                     <span class="sidebar-text">Đào tạo 4 nhóm (§1.4)</span>
                 </a>
             </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/etl')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/etl')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔄</span>
+                    <span class="sidebar-text">Chuyển đổi dữ liệu ETL</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="<?= e(url('/admin/he-thong/tich-hop')) ?>" class="sidebar-link <?= (str_contains($_SERVER['REQUEST_URI'] ?? '', '/admin/he-thong/tich-hop')) ? 'active' : '' ?>">
+                    <span class="sidebar-icon">🔌</span>
+                    <span class="sidebar-text">Cổng tích hợp (9 dịch vụ)</span>
+                </a>
+            </li>
             <?php endif; ?>
 
             <li class="sidebar-item mt-3">

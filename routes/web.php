@@ -8,7 +8,9 @@ use App\Controllers\Admin\CategoryController;
 use App\Controllers\Admin\ConfigController;
 use App\Controllers\Admin\DashboardController;
 use App\Controllers\Admin\DonViController;
+use App\Controllers\Admin\EtlController;
 use App\Controllers\Admin\HeThongController;
+use App\Controllers\Admin\TichHopController;
 use App\Controllers\Admin\DvhcController;
 use App\Controllers\Admin\EformController;
 use App\Controllers\Admin\MotCuaController;
@@ -346,6 +348,24 @@ Router::group(['prefix' => '/admin', 'middleware' => ['security_headers']], func
         Router::get('/he-thong/dao-tao', [HeThongController::class, 'daoTao'])->name('admin.he_thong.dao_tao');
         Router::post('/he-thong/dao-tao/ghi-danh', [HeThongController::class, 'ghiDanhHocVienAction'])->name('admin.he_thong.ghi_danh');
         Router::post('/he-thong/dao-tao/nhap-diem', [HeThongController::class, 'nhapDiemHocVienAction'])->name('admin.he_thong.nhap_diem');
+
+        // ====================================================================
+        // PH14: CHUYỂN ĐỔI DỮ LIỆU ETL & QUẢN TRỊ TÍCH HỢP (§1.1, §1.3.A)
+        // ====================================================================
+        // 6. Chuyển đổi dữ liệu ETL 4 bước (Extract -> Staging -> Transform -> Load)
+        Router::get('/he-thong/etl', [EtlController::class, 'index'])->name('admin.he_thong.etl');
+        Router::post('/he-thong/etl/extract', [EtlController::class, 'extract'])->name('admin.he_thong.etl.extract');
+        Router::post('/he-thong/etl/profile', [EtlController::class, 'profile'])->name('admin.he_thong.etl.profile');
+        Router::post('/he-thong/etl/transform', [EtlController::class, 'transform'])->name('admin.he_thong.etl.transform');
+        Router::post('/he-thong/etl/load', [EtlController::class, 'load'])->name('admin.he_thong.etl.load');
+        Router::get('/he-thong/etl/export-errors/{id:\d+}', [EtlController::class, 'exportErrors'])->name('admin.he_thong.etl.export_errors');
+        Router::post('/he-thong/etl/mapping-tthc', [EtlController::class, 'saveMappingTthc'])->name('admin.he_thong.etl.map_tthc');
+        Router::post('/he-thong/etl/mapping-dvhc', [EtlController::class, 'saveMappingDvhc'])->name('admin.he_thong.etl.map_dvhc');
+
+        // 7. Quản trị tích hợp 9 cổng liên thông
+        Router::get('/he-thong/tich-hop', [TichHopController::class, 'index'])->name('admin.he_thong.tich_hop');
+        Router::post('/he-thong/tich-hop/ping', [TichHopController::class, 'ping'])->name('admin.he_thong.tich_hop.ping');
+        Router::post('/he-thong/tich-hop/update', [TichHopController::class, 'update'])->name('admin.he_thong.tich_hop.update');
     });
 });
 
