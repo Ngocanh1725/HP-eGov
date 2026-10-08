@@ -582,7 +582,7 @@ DROP TABLE IF EXISTS `chu_ky_so`;
 CREATE TABLE `chu_ky_so` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `chung_thu_so_id` INT NOT NULL,
-    `ho_so_tai_lieu_id` INT NOT NULL,
+    `ho_so_tai_lieu_id` INT NULL COMMENT 'Tài liệu liên quan (NULL nếu là văn bản ký độc lập)',
     `loai_chu_ky` ENUM('SO_HOA', 'DUYET_BUOC_1', 'PHAT_HANH', 'DONG_DAU_CO_QUAN') NOT NULL,
     `nguoi_ky_id` INT NOT NULL,
     `sha256_truoc_ky` VARCHAR(64) NOT NULL COMMENT 'Băm SHA-256 của tài liệu trước khi ký',
@@ -592,7 +592,7 @@ CREATE TABLE `chu_ky_so` (
     `ghi_chu` VARCHAR(255) NULL,
     INDEX `idx_cks_tailieu` (`ho_so_tai_lieu_id`),
     CONSTRAINT `fk_cks_cert` FOREIGN KEY (`chung_thu_so_id`) REFERENCES `chung_thu_so` (`id`) ON DELETE RESTRICT,
-    CONSTRAINT `fk_cks_tailieu` FOREIGN KEY (`ho_so_tai_lieu_id`) REFERENCES `ho_so_tai_lieu` (`id`) ON DELETE RESTRICT,
+    CONSTRAINT `fk_cks_tailieu` FOREIGN KEY (`ho_so_tai_lieu_id`) REFERENCES `ho_so_tai_lieu` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_cks_user` FOREIGN KEY (`nguoi_ky_id`) REFERENCES `nguoi_dung` (`id`) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Nhật ký chi tiết các chữ ký số áp dụng lên văn bản';
 

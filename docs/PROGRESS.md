@@ -787,9 +787,41 @@
   5. **Kiểm thử Toàn diện & Bản Phát hành Chính thức:**
      - Chạy lại toàn bộ test suite CLI: **124/124 tests PASSED 100% (0 failed)**.
      - Gắn tag phiên bản phát hành chính thức: `git tag v1.0.0`.
-- **Tổng kết Dự án:**
-  - **17/17 phiên làm việc hoàn thành xuất sắc (100%)**.
-  - Hệ thống đạt trạng thái sẵn sàng nghiệm thu và bàn giao cho Ủy ban nhân dân Thành phố Hải Phòng.
+---
+
+### PHIÊN 1 (CHUYÊN ĐỀ): KIẾN TRÚC & CƠ SỞ DỮ LIỆU CHUẨN HÓA (UTF-8, MDM & INITIALIZATION ENGINE)
+- **Thời gian hoàn thành:** 2026-10-08
+- **Căn cứ thực hiện:** Báo cáo Kiến trúc §1.2, §4.1, §4.2; NĐ 61/2018; TT 01/2018; QCVN 102:2016.
+- **Công việc đã thực hiện:**
+  1. **Rà soát & Hoàn thiện Schema (`database/schema.sql`):**
+     - Đảm bảo 100% bảng (57 bảng vật lý InnoDB) và cột văn bản thiết lập Charset `utf8mb4` và Collation `utf8mb4_unicode_ci`.
+     - Duy trì 6 Triggers bảo vệ nguyên tắc bất biến: Chặn `DELETE` vật lý trên `ho_so`, `ho_so_tai_lieu`, `ho_so_luan_chuyen`, `chu_ky_so`; chặn `UPDATE/DELETE` trên `nhat_ky_kiem_toan` (mô phỏng kho WORM).
+     - Duy trì 3 Views chỉ đạo điều hành: `v_ho_so_tong_hop`, `v_ty_le_dung_han_don_vi`, `v_ho_so_qua_han`.
+     - Tinh chỉnh ràng buộc cột `ho_so_tai_lieu_id` trên bảng `chu_ky_so` sang `INT NULL` kèm `ON DELETE SET NULL` để hỗ trợ ký số linh hoạt cho cả tài liệu độc lập lẫn văn bản xuất khẩu.
+  2. **Bảo đảm Danh mục dùng chung (MDM) & Cây Tổ chức:**
+     - `dm_dvhc`: Chuẩn TCTK (Tỉnh, 15 Quận/Huyện/TP, Xã/Phường mẫu TP. Hải Phòng).
+     - `don_vi`: Cây tổ chức cơ quan đa cấp có Materialized Path (`/1/10/30/`) phục vụ lọc Data Scope.
+     - `thu_tuc_hanh_chinh`: Mã TTHC quốc gia, lĩnh vực, mức độ DVC, thời hạn giờ làm việc.
+     - `dm_trang_thai`: 6 trạng thái chuẩn Thông tư 01/2018/TT-VPCP và các trạng thái mở rộng.
+  3. **Xây dựng Script Khởi tạo CSDL Thông minh (`database/init_db.php`):**
+     - Tự động kiểm tra và tạo database `hp_egov` với `utf8mb4` / `utf8mb4_unicode_ci`.
+     - Bộ phân tích cú pháp SQL Parser tự động xử lý các khối `DELIMITER $$` / `DELIMITER ;` của Stored Triggers, loại bỏ lỗi cú pháp khi nạp qua PHP PDO.
+     - Nạp trực tiếp `database/schema.sql`, `database/seed.sql`, `mau_thong_bao`, `Session14Seeder.php` qua PDO UTF-8, triệt tiêu vĩnh viễn lỗi Mojibake từ shell redirect Windows.
+     - Tự động đồng bộ chứng thư số RSA từ `storage/keys/` vào bảng `chung_thu_so` và quét SLA định kỳ ban đầu.
+  4. **Xây dựng Script Kiểm thử Bảng mã & Toàn vẹn CSDL (`tests/test_database_encoding.php`):**
+     - Lấy mẫu ngẫu nhiên 40 chuỗi tiếng Việt từ `don_vi`, `thu_tuc_hanh_chinh`, `nguoi_dung`, `ho_so`.
+     - Kiểm tra chuỗi hợp lệ UTF-8, phát hiện ký tự rác Mojibake, nhận diện tiếng Việt có dấu chuẩn.
+     - Kiểm thử kích hoạt trigger `tg_hoso_prevent_delete` (SQLSTATE 45000: cấm xóa vật lý hồ sơ hành chính).
+     - Kết quả kiểm thử: **40/40 chuỗi tiếng Việt chuẩn 100%, 0 lỗi phông, Trigger hoạt động hoàn hảo**.
+  5. **Kiểm thử Toàn diện & Rà soát Cú pháp:**
+     - Bộ test suite hệ thống: **124/124 tests PASSED 100% (0 failed)**.
+     - Kiểm tra cú pháp toàn dự án: **253/253 files PHP sạch 100%**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `database/init_db.php` (Mới)
+  - `tests/test_database_encoding.php` (Mới)
+  - `database/schema.sql` (Cập nhật)
+  - `docs/PROGRESS.md` (Cập nhật)
+
 
 
 
