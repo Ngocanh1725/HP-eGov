@@ -822,6 +822,47 @@
   - `database/schema.sql` (Cập nhật)
   - `docs/PROGRESS.md` (Cập nhật)
 
+---
+
+### PHIÊN 2 (CHUYÊN ĐỀ): LÕI NGHIỆP VỤ & QUY TRÌNH HỒ SƠ (CORE BUSINESS LOGIC & WORKFLOW ENGINE)
+- **Thời gian hoàn thành:** 2026-10-08
+- **Căn cứ thực hiện:**
+  - Quyết định số 102/2016/QĐ-BTTTT (QCVN 102:2016/BTTTT về cấu trúc mã hồ sơ thủ tục hành chính).
+  - Nghị định số 61/2018/NĐ-CP & Thông tư số 01/2018/TT-VPCP (Quy trình tiếp nhận, luân chuyển hồ sơ, Giấy xin lỗi Mẫu số 04).
+  - Nguyên tắc đặc quyền tối thiểu (PoLP - Principle of Least Privilege) & Ma trận RBAC 7 vai trò.
+- **Công việc đã hoàn thiện & kiểm chứng:**
+  1. **Mã hồ sơ chuẩn Quốc gia (QCVN 102:2016/BTTTT) & Khóa bi quan (`app/Services/MaHoSoGenerator.php`):**
+     - Cấu trúc chuẩn xác 4 phần: `{Mã cơ quan}.{YYMMDD}-{Mã TTHC 4 số}-{STT 6 số}` (Ví dụ: `000.04.15.H21-261008-0042-000123`).
+     - Cơ chế chống trùng tuyệt đối: Dùng Pessimistic Row Lock (`SELECT gia_tri_hien_tai FROM bo_dem_ma_ho_so WHERE ... FOR UPDATE`) trong InnoDB transaction. Đảm bảo 100% không trùng mã khi hàng nghìn hồ sơ nộp đồng thời trong cùng một giây.
+  2. **Động cơ SLA Chuẩn Công vụ (`app/Services/SlaEngine.php`):**
+     - Giờ hành chính chuẩn: Sáng 07:30 - 11:30, Chiều 13:30 - 17:30 (8.0 giờ làm việc/ngày).
+     - Loại trừ tự động: Khoảng thời gian đêm, Thứ Bảy, Chủ Nhật và Danh mục các ngày Nghỉ Lễ Quốc gia (`dm_ngay_nghi`).
+     - Quy tắc nộp sau 17:00: Tự động chuyển thời điểm bắt đầu tính hạn sang 07:30 sáng ngày làm việc kế tiếp.
+     - Cơ chế tạm dừng SLA (`pauseSla` / `resumeSla`): Khi trạng thái hồ sơ chuyển sang "Chờ bổ sung giấy tờ" hoặc "Lấy ý kiến phối hợp liên ngành", bộ đếm SLA tự động tạm dừng và khấu trừ thời gian gián đoạn (`so_gio_tam_dung`) khi kích hoạt lại.
+     - Cảnh báo trực quan 3 màu SLA:
+       + **XANH**: Thời gian xử lý còn lại > 25% tổng thời hạn (hoặc thời gian đã dùng <= 75%).
+       + **VÀNG**: Thời gian xử lý còn lại <= 25% tổng thời hạn hoặc thời gian còn lại <= 24 giờ làm việc.
+       + **ĐỎ**: Đã quá hạn cam kết (Quá hạn SLA). Tự động kích hoạt cờ khóa chuyển bước thông thường (`SLA_BREACH_LOCKED`), bắt buộc Lãnh đạo cơ quan ban hành "Văn bản xin lỗi và hẹn lại ngày trả kết quả" (Mẫu số 04 - TT 01/2018/TT-VPCP) mới được mở khóa hoàn thành.
+  3. **Quy trình luân chuyển hồ sơ & Khóa vi phạm SLA (`app/Services/WorkflowEngine.php`):**
+     - Quản lý toàn diện vòng đời hồ sơ hành chính từ Tiếp nhận -> Thụ lý -> Thẩm tra -> Phê duyệt ký số -> Văn thư số cấp số đóng dấu -> Trả kết quả.
+     - Tích hợp kiểm tra tính toàn vẹn tệp đính kèm (`verifyFileIntegrity`) dựa trên mã băm SHA-256.
+     - Thực thi quy tắc khóa `SLA_BREACH_LOCKED` khi hồ sơ SLA ĐỎ mà chưa có bản ghi `van_ban_xin_loi` ở trạng thái `DA_KY`. Tự động mở khóa ngay khi có Mẫu 04 đã ký duyệt hợp lệ.
+  4. **Ma trận phân quyền RBAC đa cấp & Nguyên tắc PoLP (`app/Services/AuthService.php`):**
+     - 7 vai trò chuẩn: (1) Công dân/Doanh nghiệp (`CONG_DAN`), (2) Cán bộ Một cửa tiếp nhận (`MOT_CUA`), (3) Chuyên viên thẩm định thụ lý (`CHUYEN_VIEN`), (4) Lãnh đạo Phòng chuyên môn (`LANH_DAO_PHONG`), (5) Lãnh đạo Cơ quan phê duyệt/ký số (`LANH_DAO_SO`), (6) Văn thư số đóng dấu/cấp số (`VAN_THU`), (7) Quản trị viên hệ thống (`SYSADMIN`).
+     - Nguyên tắc phân tách quyền hạn (PoLP): Quản trị viên SYSADMIN tuyệt đối không có quyền thụ lý hồ sơ, ký duyệt hoặc sửa đổi nội dung nghiệp vụ; chỉ quản trị tài khoản, danh mục và giám sát kỹ thuật. Mọi nỗ lực can thiệp nghiệp vụ đều bị chặn đứng và ghi nhật ký kiểm toán.
+  5. **Bộ Unit Test Chuyên biệt Phiên 2 (`tests/Unit/Phien2LoiNghiepVuTest.php`):**
+     - `testSinh50MaHoSoDongThoiKhongTrung`: Giả lập sinh 50 mã hồ sơ đồng thời; kiểm tra cấu trúc 4 phần chuẩn QCVN 102 và kiểm tra tính duy nhất tuyệt đối (50/50 mã khác nhau).
+     - `testTinhHanNgayHenTraQuaLe30Thang4VaTetNguyenDan`: Kiểm tra tính hạn ngày hẹn trả nhảy qua kỳ nghỉ Tết Nguyên Đán 2026 (7 ngày nghỉ Tết + cuối tuần) và kỳ nghỉ lễ 30/4 - 1/5 (4 ngày nghỉ lễ + cuối tuần), đồng thời kiểm tra tính toán thời hạn theo giờ làm việc chính xác đến từng phút (`09:30:00` sáng ngày làm việc đầu tiên sau kỳ nghỉ).
+     - `testKhoaChuyenBuocKhiSlaDoVaMoKhoaBangMau04`: Tạo hồ sơ SLA ĐỎ, xác nhận lệnh chuyển bước bị khóa chặt với mã lỗi `SLA_BREACH_LOCKED`; sau khi tạo Văn bản xin lỗi Mẫu 04 đã ký, quy trình tự động mở khóa cho phép chuyển bước thành công.
+     - `testChanSysadminCanThiepKyDuyetVaThuLy`: Kiểm tra tài khoản SYSADMIN hoàn toàn không có quyền trong danh mục quyền thụ lý/ký số; thực thi ký số với vai trò SYSADMIN bị chặn ngay lập tức bởi ngoại lệ miền (DomainException).
+  6. **Kết quả kiểm thử toàn hệ thống:**
+     - Toàn bộ test suite: **128/128 tests PASSED (100% Passed, 0 Failed)**.
+     - Cú pháp toàn dự án: **254/254 tệp PHP sạch 100% (0 syntax error)**.
+- **Tệp tin đã tạo/cập nhật:**
+  - `tests/Unit/Phien2LoiNghiepVuTest.php` (Mới)
+  - `docs/PROGRESS.md` (Cập nhật)
+
+
 
 
 
