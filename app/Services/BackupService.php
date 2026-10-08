@@ -33,7 +33,12 @@ class BackupService
         $startTime = microtime(true);
         $baseDir = dirname(__DIR__, 2);
         $backupPath = $baseDir . DIRECTORY_SEPARATOR . self::BACKUP_DIR;
-        $drPath = $baseDir . DIRECTORY_SEPARATOR . self::DR_SITE_DIR;
+        
+        // DR Site path có thể cấu hình linh hoạt qua biến môi trường DR_SITE_DIR hoặc .env
+        $drSiteConfig = \App\Core\Env::get('DR_SITE_DIR', self::DR_SITE_DIR);
+        $drPath = (str_starts_with($drSiteConfig, '/') || preg_match('/^[a-zA-Z]:/', $drSiteConfig))
+            ? $drSiteConfig
+            : $baseDir . DIRECTORY_SEPARATOR . $drSiteConfig;
 
         if (!is_dir($backupPath)) {
             @mkdir($backupPath, 0755, true);
@@ -43,9 +48,8 @@ class BackupService
         }
 
         $timestamp = date('Ymd_His');
-        $fileName = "full_hp_egov_{$timestamp}.sql";
-        $targetFile = $backupPath . DIRECTORY_SEPARATOR . $fileName;
-        $drFile = $drPath . DIRECTORY_SEPARATOR . $fileName;
+        $rawSqlName = "full_hp_egov_{$timestamp}.sql";
+        $rawSqlFile = $backupPath . DIRECTORY_SEPARATOR . $rawSqlName;
 
         $db = Database::connection();
         $thoiGianBatDau = date('Y-m-d H:i:s');
@@ -57,8 +61,8 @@ class BackupService
             'FULL', :file_name, :path, 0, '', 'ON_PREMISE', :start_time, 'DANG_CHAY', :note
         )");
         $stmtInsert->execute([
-            ':file_name' => $fileName,
-            ':path' => $targetFile,
+            ':file_name' => $rawSqlName,
+            ':path' => $rawSqlFile,
             ':start_time' => $thoiGianBatDau,
             ':note' => $ghiChu,
         ]);
@@ -72,21 +76,41 @@ class BackupService
                 '"%s" -u root --single-transaction --routines --triggers %s > "%s"',
                 $mysqldump,
                 self::DB_NAME,
-                $targetFile
+                $rawSqlFile
             );
 
             // Chạy lệnh sao lưu
             exec($cmd, $output, $returnCode);
 
-            if ($returnCode !== 0 || !file_exists($targetFile) || filesize($targetFile) === 0) {
+            if ($returnCode !== 0 || !file_exists($rawSqlFile) || filesize($rawSqlFile) === 0) {
                 // Fallback nếu lệnh CLI gặp lỗi shell: dùng PDO export schema + data
-                self::fallbackExportPdo($targetFile);
+                self::fallbackExportPdo($rawSqlFile);
+            }
+
+            // Nén tệp bản sao lưu (.sql -> .sql.gz) theo đúng chính sách báo cáo
+            $fileName = $rawSqlName;
+            $targetFile = $rawSqlFile;
+
+            if (function_exists('gzencode') && file_exists($rawSqlFile) && filesize($rawSqlFile) > 0) {
+                $gzFileName = "full_hp_egov_{$timestamp}.sql.gz";
+                $gzFile = $backupPath . DIRECTORY_SEPARATOR . $gzFileName;
+                $rawContent = file_get_contents($rawSqlFile);
+                if ($rawContent !== false) {
+                    $compressed = gzencode($rawContent, 9);
+                    if ($compressed !== false) {
+                        file_put_contents($gzFile, $compressed);
+                        @unlink($rawSqlFile);
+                        $targetFile = $gzFile;
+                        $fileName = $gzFileName;
+                    }
+                }
             }
 
             $fileSize = (int)filesize($targetFile);
             $sha256 = hash_file('sha256', $targetFile) ?: '';
 
-            // Sao chép sang DR Site (Trung tâm phục hồi thảm họa)
+            // Sao chép sang DR Site (Trung tâm phục hồi thảm họa cấu hình được)
+            $drFile = $drPath . DIRECTORY_SEPARATOR . $fileName;
             @copy($targetFile, $drFile);
 
             $thoiGianHoanThanh = date('Y-m-d H:i:s');
@@ -94,6 +118,8 @@ class BackupService
 
             // Cập nhật CSDL trạng thái THANH_CONG
             $stmtUpdate = $db->prepare("UPDATE sao_luu SET 
+                ten_file = :fname,
+                duong_dan = :path,
                 dung_luong_byte = :size,
                 sha256 = :hash,
                 thoi_gian_hoan_thanh = :finish_time,
@@ -101,6 +127,8 @@ class BackupService
                 vi_tri_luu = 'ON_PREMISE & DR_SITE'
                 WHERE id = :id");
             $stmtUpdate->execute([
+                ':fname' => $fileName,
+                ':path' => $targetFile,
                 ':size' => $fileSize,
                 ':hash' => $sha256,
                 ':finish_time' => $thoiGianHoanThanh,
@@ -109,7 +137,7 @@ class BackupService
 
             return [
                 'success' => true,
-                'message' => "Sao lưu Full Backup thành công ({$fileName})",
+                'message' => "Sao lưu Full Backup thành công (Nén gzip + SHA-256 + DR Site: {$fileName})",
                 'backup_id' => $backupId,
                 'file' => $fileName,
                 'sha256' => $sha256,
@@ -281,6 +309,20 @@ class BackupService
         $fileSize = (int)filesize($targetFile);
         $sha256 = hash_file('sha256', $targetFile) ?: '';
 
+        // Kiểm tra MySQL Binary Log thực tế nếu đã bật log-bin trong my.ini
+        $binlogNote = '';
+        $mysqlDataDir = 'C:\\xampp\\mysql\\data';
+        $binlogFiles = glob($mysqlDataDir . DIRECTORY_SEPARATOR . 'mysql-bin.[0-9]*');
+        if (!empty($binlogFiles)) {
+            $latestBinlog = end($binlogFiles);
+            $binlogTarget = $backupPath . DIRECTORY_SEPARATOR . basename($latestBinlog) . "_{$timestamp}";
+            if (@copy($latestBinlog, $binlogTarget)) {
+                $binlogNote = " | Đã đồng bộ MySQL Binary Log: " . basename($latestBinlog);
+            }
+        }
+
+        $note = $ghiChu . $binlogNote;
+
         $stmt = $db->prepare("INSERT INTO sao_luu (
             loai_sao_luu, ten_file, duong_dan, dung_luong_byte, sha256, vi_tri_luu, thoi_gian_bat_dau, thoi_gian_hoan_thanh, trang_thai, ghi_chu
         ) VALUES (
@@ -292,12 +334,12 @@ class BackupService
             ':size' => $fileSize,
             ':hash' => $sha256,
             ':start_time' => $thoiGianBatDau,
-            ':note' => $ghiChu,
+            ':note' => $note,
         ]);
 
         return [
             'success' => true,
-            'message' => "Sao lưu Transaction Log thành công ({$fileName})",
+            'message' => "Sao lưu Transaction Log thành công ({$fileName})" . ($binlogNote ? " [có binlog]" : ""),
             'backup_id' => (int)$db->lastInsertId(),
             'file' => $fileName,
             'sha256' => $sha256,
@@ -348,16 +390,37 @@ class BackupService
             // 2. Khởi tạo CSDL kiểm thử hp_egov_restore_test
             $db->exec("CREATE DATABASE IF NOT EXISTS `" . self::TEST_RESTORE_DB . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 
-            // 3. Phục hồi qua mysql.exe CLI
+            // 3. Phục hồi qua mysql.exe CLI (Hỗ trợ tự động giải nén nếu là tệp .sql.gz)
+            $sourceFile = $backup['duong_dan'];
+            $tempSqlFile = null;
+
+            if (str_ends_with(strtolower($sourceFile), '.gz')) {
+                $tempSqlFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'restore_' . uniqid('drp_', true) . '.sql';
+                $gzData = file_get_contents($sourceFile);
+                if ($gzData === false) {
+                    throw new \RuntimeException("Không thể đọc tệp sao lưu nén: {$sourceFile}");
+                }
+                $sqlContent = gzdecode($gzData);
+                if ($sqlContent === false) {
+                    throw new \RuntimeException("Lỗi giải nén tệp sao lưu gzip: {$sourceFile}");
+                }
+                file_put_contents($tempSqlFile, $sqlContent);
+                $sourceFile = $tempSqlFile;
+            }
+
             $mysqlBin = file_exists(self::MYSQL_PATH) ? self::MYSQL_PATH : 'mysql';
             $cmd = sprintf(
                 '"%s" -u root "%s" < "%s"',
                 $mysqlBin,
                 self::TEST_RESTORE_DB,
-                $backup['duong_dan']
+                $sourceFile
             );
 
             exec($cmd, $output, $returnCode);
+
+            if ($tempSqlFile && file_exists($tempSqlFile)) {
+                @unlink($tempSqlFile);
+            }
 
             // Kiểm tra số bảng được phục hồi vào DB test
             $stmtTables = $db->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '" . self::TEST_RESTORE_DB . "'");

@@ -25,11 +25,11 @@
                 </div>
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <h5 class="card-title fs-6 fw-bold mb-2">
+                        <h4 class="card-title fs-6 fw-bold mb-2">
                             <a href="<?= url('/admin/he-thong/dao-tao?khoa_id=' . $c['id']) ?>" class="text-decoration-none <?= ($selectedCourse && $selectedCourse['id'] == $c['id']) ? 'text-primary' : 'text-dark' ?>">
                                 <?= e($c['ten_khoa']) ?>
                             </a>
-                        </h5>
+                        </h4>
                         <p class="small text-muted mb-2 text-truncate d-block" title="<?= e($c['noi_dung_trong_tam']) ?>">
                             <?= e($c['noi_dung_trong_tam']) ?>
                         </p>
@@ -66,7 +66,7 @@
                     <strong>Ngưỡng đạt:</strong> <span class="badge bg-success"><?= e($selectedCourse['nguong_dat']) ?></span>
                 </p>
             </div>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#enrollModal">
+            <button type="button" class="btn btn-primary btn-sm" onclick="openEnrollModal()">
                 + Ghi danh cán bộ mới
             </button>
         </div>
@@ -121,7 +121,7 @@
                                         <?= e($stu['nhan_xet'] ?? 'Chưa có nhận xét sát hạch') ?>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary" onclick="gradeStudentModal(<?= htmlspecialchars(json_encode($stu), ENT_QUOTES, 'UTF-8') ?>)">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="gradeStudentModal(<?= htmlspecialchars(json_encode($stu), ENT_QUOTES, 'UTF-8') ?>)">
                                             ✏️ Chấm
                                         </button>
                                     </td>
@@ -136,78 +136,86 @@
 <?php endif; ?>
 
 <!-- Modal Ghi danh cán bộ -->
-<div class="modal fade" id="enrollModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="<?= url('/admin/he-thong/dao-tao/ghi-danh') ?>">
-                <?= csrf_field() ?>
-                <input type="hidden" name="khoa_id" value="<?= $selectedCourse['id'] ?? 0 ?>">
-                <div class="modal-header">
-                    <h5 class="modal-title">Ghi danh cán bộ tham gia khóa đào tạo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-backdrop" id="enrollModal">
+    <div class="modal-card" style="max-width: 580px;">
+        <form method="POST" action="<?= url('/admin/he-thong/dao-tao/ghi-danh') ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="khoa_id" value="<?= $selectedCourse['id'] ?? 0 ?>">
+            <div class="modal-header">
+                <h3 class="modal-title">Ghi danh cán bộ tham gia khóa đào tạo</h3>
+                <button type="button" class="modal-close" data-modal-close>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Khóa đào tạo đang chọn:</label>
+                    <input type="text" class="form-control bg-light" value="<?= e($selectedCourse['ten_khoa'] ?? '') ?>" readonly>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Chọn cán bộ công chức / viên chức:</label>
-                        <select name="nguoi_dung_id" class="form-select" required>
-                            <option value="">-- Chọn cán bộ --</option>
-                            <?php foreach ($availableUsers as $au): ?>
-                                <option value="<?= $au['id'] ?>">
-                                    <?= e($au['ho_ten']) ?> (<?= e($au['ten_dang_nhap']) ?> - <?= e($au['vai_tro']) ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chọn cán bộ công chức / viên chức:</label>
+                    <select name="nguoi_dung_id" class="form-select" required>
+                        <option value="">-- Chọn cán bộ --</option>
+                        <?php foreach ($availableUsers as $au): ?>
+                            <option value="<?= $au['id'] ?>">
+                                <?= e($au['ho_ten']) ?> (<?= e($au['ten_dang_nhap']) ?> - <?= e($au['vai_tro']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Xác nhận ghi danh</button>
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-close>Hủy</button>
+                <button type="submit" class="btn btn-primary">Xác nhận ghi danh</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <!-- Modal Chấm điểm sát hạch thực hành -->
-<div class="modal fade" id="gradeModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="<?= url('/admin/he-thong/dao-tao/nhap-diem') ?>">
-                <?= csrf_field() ?>
-                <input type="hidden" name="khoa_id" value="<?= $selectedCourse['id'] ?? 0 ?>">
-                <input type="hidden" name="id" id="grade-student-id" value="0">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="gradeModalTitle">Đánh giá Kết quả Sát hạch Cán bộ</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-backdrop" id="gradeModal">
+    <div class="modal-card" style="max-width: 600px;">
+        <form method="POST" action="<?= url('/admin/he-thong/dao-tao/nhap-diem') ?>">
+            <?= csrf_field() ?>
+            <input type="hidden" name="khoa_id" value="<?= $selectedCourse['id'] ?? 0 ?>">
+            <input type="hidden" name="id" id="grade-student-id" value="0">
+            <div class="modal-header">
+                <h3 class="modal-title" id="gradeModalTitle">Đánh giá Kết quả Sát hạch Cán bộ</h3>
+                <button type="button" class="modal-close" data-modal-close>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info py-2 small mb-3">
+                    <strong>Tiêu chuẩn ĐẠT nhóm <?= e($selectedCourse['nhom_doi_tuong'] ?? '') ?>:</strong><br>
+                    <?= e($selectedCourse['nguong_dat'] ?? '') ?>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-info py-2 small mb-3">
-                        <strong>Tiêu chuẩn ĐẠT nhóm <?= e($selectedCourse['nhom_doi_tuong'] ?? '') ?>:</strong><br>
-                        <?= e($selectedCourse['nguong_dat'] ?? '') ?>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Điểm số lý thuyết / trắc nghiệm (thang 100):</label>
-                        <input type="number" step="0.5" min="0" max="100" name="diem_so" id="grade-score" class="form-control" placeholder="Nhập điểm số (ví dụ: 92.5)">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Số lượng hồ sơ mẫu đã thực hành xử lý:</label>
-                        <input type="number" min="0" name="so_ho_so_thuc_hanh" id="grade-records" class="form-control" placeholder="Số hồ sơ hoàn thành">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Nhận xét & Đánh giá năng lực thao tác:</label>
-                        <textarea name="nhan_xet" id="grade-notes" class="form-control" rows="3" placeholder="Nhận xét sự thành thạo thao tác, xử lý quy trình..."></textarea>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Điểm số lý thuyết / trắc nghiệm (thang 100):</label>
+                    <input type="number" step="0.5" min="0" max="100" name="diem_so" id="grade-score" class="form-control" placeholder="Nhập điểm số (ví dụ: 92.5)">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-success">Lưu kết quả sát hạch</button>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Số lượng hồ sơ mẫu đã thực hành xử lý:</label>
+                    <input type="number" min="0" name="so_ho_so_thuc_hanh" id="grade-records" class="form-control" placeholder="Số hồ sơ hoàn thành">
                 </div>
-            </form>
-        </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nhận xét & Đánh giá năng lực thao tác:</label>
+                    <textarea name="nhan_xet" id="grade-notes" class="form-control" rows="3" placeholder="Nhận xét sự thành thạo thao tác, xử lý quy trình..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-close>Đóng</button>
+                <button type="submit" class="btn btn-success">Lưu kết quả sát hạch</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
+function openEnrollModal() {
+    if (window.App && App.modal) {
+        App.modal.open('enrollModal');
+    } else {
+        document.getElementById('enrollModal').classList.add('show');
+    }
+}
+
 function gradeStudentModal(stu) {
     document.getElementById('grade-student-id').value = stu.id;
     document.getElementById('gradeModalTitle').innerText = 'Chấm điểm cán bộ: ' + stu.ho_ten;
@@ -215,7 +223,10 @@ function gradeStudentModal(stu) {
     document.getElementById('grade-records').value = stu.so_ho_so_thuc_hanh || 0;
     document.getElementById('grade-notes').value = stu.nhan_xet || '';
 
-    const modal = new bootstrap.Modal(document.getElementById('gradeModal'));
-    modal.show();
+    if (window.App && App.modal) {
+        App.modal.open('gradeModal');
+    } else {
+        document.getElementById('gradeModal').classList.add('show');
+    }
 }
 </script>

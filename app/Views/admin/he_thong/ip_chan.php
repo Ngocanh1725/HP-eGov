@@ -9,7 +9,7 @@
                     <h3 class="card-title m-0">Danh sách IP Bị Chặn (Blacklist)</h3>
                     <p class="text-muted small m-0">Các địa chỉ IP cố tình tấn công hoặc vi phạm an toàn thông tin bị hệ thống từ chối hoàn toàn</p>
                 </div>
-                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#blockIpModal">
+                <button type="button" class="btn btn-danger btn-sm" onclick="openBlockIpModal()">
                     + Chặn địa chỉ IP
                 </button>
             </div>
@@ -104,39 +104,47 @@
 </div>
 
 <!-- Modal Thêm IP Chặn -->
-<div class="modal fade" id="blockIpModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="POST" action="<?= url('/admin/he-thong/ip-chan/block') ?>">
-                <?= csrf_field() ?>
-                <div class="modal-header">
-                    <h5 class="modal-title">Khóa Địa chỉ IP Vi phạm</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div class="modal-backdrop" id="blockIpModal">
+    <div class="modal-card" style="max-width: 520px;">
+        <form method="POST" action="<?= url('/admin/he-thong/ip-chan/block') ?>">
+            <?= csrf_field() ?>
+            <div class="modal-header">
+                <h3 class="modal-title">Khóa Địa chỉ IP Vi phạm</h3>
+                <button type="button" class="modal-close" data-modal-close>&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Địa chỉ IP:</label>
+                    <input type="text" name="ip_address" class="form-control" placeholder="VD: 113.190.23.45" required>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Địa chỉ IP:</label>
-                        <input type="text" name="ip_address" class="form-control" placeholder="VD: 113.190.23.45" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Lý do khóa:</label>
-                        <textarea name="ly_do" class="form-control" rows="2" placeholder="VD: Dò quét lỗ hổng SQLi, DDoS Layer 7..." required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Thời hạn khóa (ngày):</label>
-                        <select name="days" class="form-select">
-                            <option value="1">1 Ngày</option>
-                            <option value="7">7 Ngày</option>
-                            <option value="30">30 Ngày</option>
-                            <option value="0">Khóa vĩnh viễn</option>
-                        </select>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Lý do khóa:</label>
+                    <textarea name="ly_do" class="form-control" rows="2" placeholder="VD: Dò quét lỗ hổng SQLi, DDoS Layer 7..." required></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-danger">Xác nhận khóa IP</button>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Thời hạn khóa (ngày):</label>
+                    <select name="days" class="form-select">
+                        <option value="1">1 Ngày</option>
+                        <option value="7">7 Ngày</option>
+                        <option value="30">30 Ngày</option>
+                        <option value="0">Khóa vĩnh viễn</option>
+                    </select>
                 </div>
-            </form>
-        </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-close>Hủy</button>
+                <button type="submit" class="btn btn-danger">Xác nhận khóa IP</button>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+function openBlockIpModal() {
+    if (window.App && App.modal) {
+        App.modal.open('blockIpModal');
+    } else {
+        document.getElementById('blockIpModal').classList.add('show');
+    }
+}
+</script>

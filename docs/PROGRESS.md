@@ -24,7 +24,7 @@
 | **10** | **Phê duyệt, Ký số & Văn thư số** | OpenSSL SHA256withRSA, SmartCA mock, ký duyệt LD_PHONG, ký phát hành & batch signing LD_CO_QUAN, hủy logic DA_HUY, Văn thư số cấp số không trùng, đóng dấu số tổ chức, đẩy kho công dân | **Hoàn thành** | 2026-10-07 | PH04, PH05, `ChuKySoService.php`, `VanThuService.php`, `PheDuyetController.php`, `VanThuController.php`, `PheDuyetKySoVanThuTest.php` |
 | **11** | **SLA Engine & Thông báo đa kênh** | SLA Xanh/Vàng/Đỏ (trừ ngày nghỉ), khóa quá hạn, Mẫu 04 xin lỗi ký số OpenSSL, Outbox queue SMS/Zalo/Email, Quản trị mẫu tin & Hộp thư mô phỏng | **Hoàn thành** | 2026-10-07 | PH06, PH07, `SlaEngine.php`, `cron/sla_scan.php`, `cron/notify_dispatch.php`, `ThongBaoService.php`, `SlaController.php`, `ThongBaoController.php`, `SlaEngineTest.php`, `SlaNotificationIntegrationTest.php` |
 | **12** | **Dashboard chỉ đạo điều hành & Báo cáo** | IOC Hải Phòng, KPI 4 chỉ tiêu, Heatmap, Bản đồ 15 quận/huyện SVG, xếp hạng thi đua, bottleneck, báo cáo TT 01, NĐ 107, SIPAS, xuất CSV & in A4 | **Hoàn thành** | 2026-10-07 | PH08, `ReportingService.php`, `DashboardController.php`, `BaoCaoController.php`, `tests/Unit/ReportingServiceTest.php` |
-| **13** | Quản trị & Vận hành hệ thống | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | *Chưa làm* | - | Kế hoạch: PH12, PH13, PH15, `docs/05_QUY_CHE_VAN_HANH.md` |
+| **13** | **Quản trị & Vận hành hệ thống** | Sao lưu RPO ≤ 2h, RTO ≤ 4h, Health endpoint, sự cố BCP/DRP, đào tạo 4 nhóm | **Hoàn thành** | 2026-10-08 | PH12, PH13, PH15, Backup/Restore XAMPP, Health, BCP/DRP, Đào tạo, `docs/05_QUY_CHE_VAN_HANH.md` |
 | **14** | Chuyển đổi dữ liệu ETL, Tích hợp & API | ETL 4 bước (checksum SHA-256), REST API /api/v1, Webhook LGSP, tài liệu API | *Chưa làm* | - | Kế hoạch: PH14, `EtlService.php`, `docs/06_API.md` |
 | **15** | Kiểm thử toàn diện & QA/QC | Unit, Integration liên thông, Security OWASP Top 10, k6/JMeter tải, UAT | *Chưa làm* | - | Kế hoạch: `tests/*`, `docs/07_KE_HOACH_KIEM_THU.md` |
 | **16** | Clean code, Hardening & Bàn giao | Rà soát PSR-12, CSP, user MySQL tối thiểu, README, HDSD 7 vai trò, Git tag v1.0.0 | *Chưa làm* | - | Kế hoạch: `README.md`, `docs/10_HDSD_*`, `git tag v1.0.0` |
@@ -607,10 +607,10 @@
   - Hoàn thành theo đúng kế hoạch.
 
 ### PHIÊN 13: QUẢN TRỊ & VẬN HÀNH HỆ THỐNG (PH12, PH13, PH15 – §1.4, §2.3, §4.3, §4.4)
-- **Thời gian hoàn thành:** 2026-10-07
+- **Thời gian hoàn thành:** 2026-10-08
 - **Công việc đã thực hiện:**
   1. **PH12 – An toàn thông tin & Nhật ký kiểm toán WORM (SYSADMIN):**
-     - Xây dựng giao diện tra cứu **Audit Trail** (`/admin/he-thong/audit`): Lọc theo người dùng, hành động, bảng tác động, ngày bắt đầu/kết thúc; phân trang mượt mà; Modal xem chi tiết Diff dữ liệu cũ/mới JSON trực quan.
+     - Xây dựng giao diện tra cứu **Audit Trail** (`/admin/he-thong/audit`): Lọc theo người dùng, hành động, bảng tác động, ngày bắt đầu/kết thúc; phân trang mượt mà; Modal xem chi tiết Diff dữ liệu cũ/mới JSON trực quan (chuẩn Design System `.modal-backdrop`, `.modal-card`).
      - Nút **"Kiểm tra toàn vẹn chuỗi băm"** (AJAX call tới `AuditService::verifyChain()`): Đối soát chuỗi hàm băm SHA-256 nối tiếp ($Hash_n = \text{SHA256}(Hash_{n-1} + ...)$), tự động phát hiện mọi hành vi can thiệp trái phép. Đã kiểm tra thực tế trên 815 bản ghi: Hợp lệ toàn vẹn 100%.
      - **Nhật ký đăng nhập** (`/admin/he-thong/nhat-ky-dang-nhap`): Theo dõi thời gian, IP, thiết bị, trình duyệt, trạng thái thành công/thất bại, lý do thất bại.
      - **Nhật ký kết nối tích hợp LGSP** (`/admin/he-thong/nhat-ky-tich-hop`): Giám sát các giao dịch liên thông tới CSDLQG Dân cư C06, Cổng DVCQG, VNPost, SMS ZNS, SmartCA, mã HTTP Status, thời gian đáp ứng (ms) và xem payload.

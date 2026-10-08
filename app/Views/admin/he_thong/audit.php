@@ -148,40 +148,38 @@
 </div>
 
 <!-- Modal xem Diff dữ liệu cũ / mới -->
-<div class="modal fade" id="diffModal" tabindex="-1" aria-labelledby="diffModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="diffModalLabel">Chi tiết Thay đổi Dữ liệu & Đối soát WORM</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal-backdrop" id="diffModal">
+    <div class="modal-card" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Chi tiết Thay đổi Dữ liệu & Đối soát WORM</h3>
+            <button type="button" class="modal-close" data-modal-close>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <span class="badge bg-primary" id="diff-action"></span>
+                <span class="badge bg-secondary" id="diff-table"></span>
+                <span class="small text-muted ms-2">Mã kiểm toán: <strong id="diff-id"></strong></span>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <span class="badge bg-primary" id="diff-action"></span>
-                    <span class="badge bg-secondary" id="diff-table"></span>
-                    <span class="small text-muted ms-2">Mã kiểm toán: <strong id="diff-id"></strong></span>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-danger">Dữ liệu trước thay đổi (Cũ):</label>
+                    <pre id="diff-old" class="bg-light p-2 border rounded font-monospace small" style="max-height: 250px; overflow: auto;"></pre>
                 </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-danger">Dữ liệu trước thay đổi (Cũ):</label>
-                        <pre id="diff-old" class="bg-light p-2 border rounded font-monospace small" style="max-height: 250px; overflow: auto;"></pre>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold text-success">Dữ liệu sau thay đổi (Mới):</label>
-                        <pre id="diff-new" class="bg-light p-2 border rounded font-monospace small" style="max-height: 250px; overflow: auto;"></pre>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <label class="form-label small fw-bold">Chuỗi băm toàn vẹn SHA-256 WORM:</label>
-                    <div class="small bg-light p-2 border rounded font-monospace">
-                        <div><strong>Block Hash:</strong> <code id="diff-hash"></code></div>
-                        <div class="text-muted"><strong>Prev Block Hash:</strong> <code id="diff-prev-hash"></code></div>
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold text-success">Dữ liệu sau thay đổi (Mới):</label>
+                    <pre id="diff-new" class="bg-light p-2 border rounded font-monospace small" style="max-height: 250px; overflow: auto;"></pre>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <div class="mt-3">
+                <label class="form-label small fw-bold">Chuỗi băm toàn vẹn SHA-256 WORM:</label>
+                <div class="small bg-light p-2 border rounded font-monospace">
+                    <div><strong>Block Hash:</strong> <code id="diff-hash"></code></div>
+                    <div class="text-muted"><strong>Prev Block Hash:</strong> <code id="diff-prev-hash"></code></div>
+                </div>
             </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-modal-close>Đóng</button>
         </div>
     </div>
 </div>
@@ -232,7 +230,11 @@ function showDiffModal(data) {
     document.getElementById('diff-hash').innerText = data.hash;
     document.getElementById('diff-prev-hash').innerText = data.prev_hash;
 
-    const modal = new bootstrap.Modal(document.getElementById('diffModal'));
-    modal.show();
+    if (window.App && App.modal) {
+        App.modal.open('diffModal');
+    } else {
+        const m = document.getElementById('diffModal');
+        if (m) m.classList.add('show');
+    }
 }
 </script>
