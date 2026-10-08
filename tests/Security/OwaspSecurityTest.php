@@ -102,6 +102,13 @@ class OwaspSecurityTest
         $canAccessOther = DataScopeService::checkHoSoAccess((int)$hsB['id']);
         TestRunner::assertFalse($canAccessOther, "Công dân A bị chặn truy cập hồ sơ của Công dân B (Anti-IDOR).");
 
+        // Kiểm tra trực tiếp trên tầng Controller / HTTP: Đổi ID trên URL trả về HTTP 403 Forbidden
+        $controller = new \App\Controllers\Portal\HoSoCaNhanController();
+        $reqIdor = new Request([], [], ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/cong-dan/ho-so/' . $hsB['ma_ho_so']]);
+        $reqIdor->setRouteParams(['ma_ho_so' => $hsB['ma_ho_so']]);
+        $resIdor = $controller->show($reqIdor);
+        TestRunner::assertEquals(403, $resIdor->getStatusCode(), "Công dân A đổi URL sang hồ sơ của B phải bị trả về HTTP 403 Forbidden.");
+
         AuthService::logout();
 
         // 2. Giả lập đăng nhập Công dân B

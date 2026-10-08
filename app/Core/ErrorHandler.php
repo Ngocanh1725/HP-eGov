@@ -101,10 +101,11 @@ class ErrorHandler
 
         // Nếu client yêu cầu JSON hoặc là AJAX request
         if ($request->wantsJson()) {
+            $safeMessage = ($isDebug || $statusCode < 500) ? $message : 'Đã xảy ra sự cố kỹ thuật nội bộ.';
             $data = [
                 'status'  => 'error',
                 'code'    => $statusCode,
-                'message' => $message,
+                'message' => $safeMessage,
             ];
 
             if ($isDebug && $exception !== null) {

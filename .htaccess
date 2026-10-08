@@ -2,7 +2,7 @@
     RewriteEngine On
 
     # Chặn truy cập trực tiếp các thư mục mã nguồn và dữ liệu nhạy cảm
-    RewriteRule ^(app|database|storage|cron|docs|\.git)(\/.*)?$ - [F,L,NC]
+    RewriteRule ^(app|database|storage|cron|docs|tests|\.git|\.agents)(\/.*)?$ - [F,L,NC]
     RewriteRule ^(\.env.*|composer\..*|package.*)$ - [F,L,NC]
 
     # Điều hướng root và các request hợp lệ về thư mục public
@@ -12,6 +12,12 @@
 </IfModule>
 
 # Chặn tuyệt đối truy cập file cấu hình, nhật ký và tài liệu nhạy cảm
-<FilesMatch "(^\.env|\.git|\.sql|\.log|\.md|\.json|\.yml|\.yaml|\.lock)$">
-    Require all denied
+<FilesMatch "(^\.env|\.git|\.sql|\.log|\.md|\.json|\.yml|\.yaml|\.lock|\.ini)$">
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
 </FilesMatch>

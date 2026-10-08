@@ -272,25 +272,16 @@ class VanThuController extends Controller
     /**
      * Xuất CSV danh sách công văn theo sổ văn bản (UTF-8 BOM)
      */
-    public function xuatCsv(Request $request, int $soId): void
+    public function xuatCsv(Request $request, int $soId): Response
     {
         $user = AuthService::user(AuthService::GUARD_CAN_BO);
         if (!$user) {
-            http_response_code(403);
-            echo "Từ chối truy cập";
-            exit;
+            return Response::json(['error' => 'Từ chối truy cập'], 403);
         }
 
         $csv = VanThuService::xuatCsvSoVanBan($soId);
         $filename = "so_van_ban_{$soId}_" . date('Ymd_His') . ".csv";
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Cache-Control: no-cache, no-store, must-revalidate');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-
-        echo $csv;
-        exit;
+        return Response::downloadContent($csv, $filename, 'text/csv; charset=utf-8');
     }
 }

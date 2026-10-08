@@ -142,11 +142,28 @@ class HoSoCaNhanController extends Controller
 
         $stmt = $db->prepare("SELECT hs.*, tt.ten_tthc FROM ho_so hs 
                               LEFT JOIN thu_tuc_hanh_chinh tt ON hs.tthc_id = tt.id 
-                              WHERE hs.ma_ho_so = :ma AND hs.cong_dan_id = :cid AND hs.is_deleted = 0");
-        $stmt->execute([':ma' => $maHoSo, ':cid' => $user['id']]);
+                              WHERE hs.ma_ho_so = :ma AND hs.is_deleted = 0 LIMIT 1");
+        $stmt->execute([':ma' => $maHoSo]);
         $hoSo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$hoSo || $hoSo['trang_thai'] !== 'CHO_BO_SUNG') {
+        if (!$hoSo) {
+            Session::flash('error', 'Không tìm thấy hồ sơ yêu cầu.');
+            return $this->redirect('/cong-dan/ho-so');
+        }
+
+        if ((int)$hoSo['cong_dan_id'] !== (int)$user['id']) {
+            AuditService::log(
+                $user['id'],
+                'TRUY_CAP_TRAI_PHEP_HO_SO_IDOR',
+                'ho_so',
+                $hoSo['id'],
+                null,
+                ['ma_ho_so' => $maHoSo, 'user_actual' => $user['id'], 'user_owner' => $hoSo['cong_dan_id']]
+            );
+            return Response::html("<h1>403 Forbidden - Truy cập bị từ chối</h1><p>Bạn không có quyền thao tác trên hồ sơ này theo quy chế bảo mật HP-eGov.</p>", 403);
+        }
+
+        if ($hoSo['trang_thai'] !== 'CHO_BO_SUNG') {
             Session::flash('error', 'Hồ sơ không ở trạng thái Chờ bổ sung.');
             return $this->redirect('/cong-dan/ho-so');
         }
@@ -176,11 +193,28 @@ class HoSoCaNhanController extends Controller
         $maHoSo = (string)$request->routeParam('ma_ho_so', '');
         $db = Database::connection();
 
-        $stmt = $db->prepare("SELECT * FROM ho_so WHERE ma_ho_so = :ma AND cong_dan_id = :cid AND is_deleted = 0");
-        $stmt->execute([':ma' => $maHoSo, ':cid' => $user['id']]);
+        $stmt = $db->prepare("SELECT * FROM ho_so WHERE ma_ho_so = :ma AND is_deleted = 0 LIMIT 1");
+        $stmt->execute([':ma' => $maHoSo]);
         $hoSo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$hoSo || $hoSo['trang_thai'] !== 'CHO_BO_SUNG') {
+        if (!$hoSo) {
+            Session::flash('error', 'Không tìm thấy hồ sơ yêu cầu.');
+            return $this->redirect('/cong-dan/ho-so');
+        }
+
+        if ((int)$hoSo['cong_dan_id'] !== (int)$user['id']) {
+            AuditService::log(
+                $user['id'],
+                'TRUY_CAP_TRAI_PHEP_HO_SO_IDOR',
+                'ho_so',
+                $hoSo['id'],
+                null,
+                ['ma_ho_so' => $maHoSo, 'user_actual' => $user['id'], 'user_owner' => $hoSo['cong_dan_id']]
+            );
+            return Response::html("<h1>403 Forbidden - Truy cập bị từ chối</h1><p>Bạn không có quyền thao tác trên hồ sơ này theo quy chế bảo mật HP-eGov.</p>", 403);
+        }
+
+        if ($hoSo['trang_thai'] !== 'CHO_BO_SUNG') {
             Session::flash('error', 'Hồ sơ không ở trạng thái Chờ bổ sung.');
             return $this->redirect('/cong-dan/ho-so');
         }
@@ -290,12 +324,24 @@ class HoSoCaNhanController extends Controller
                               FROM ho_so hs 
                               LEFT JOIN thu_tuc_hanh_chinh tt ON hs.tthc_id = tt.id 
                               LEFT JOIN don_vi dv ON hs.don_vi_tiep_nhan_id = dv.id 
-                              WHERE hs.ma_ho_so = :ma AND hs.cong_dan_id = :cid");
-        $stmt->execute([':ma' => $maHoSo, ':cid' => $user['id']]);
+                              WHERE hs.ma_ho_so = :ma AND hs.is_deleted = 0 LIMIT 1");
+        $stmt->execute([':ma' => $maHoSo]);
         $hoSo = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$hoSo) {
             return $this->redirect('/cong-dan/ho-so');
+        }
+
+        if ((int)$hoSo['cong_dan_id'] !== (int)$user['id']) {
+            AuditService::log(
+                $user['id'],
+                'TRUY_CAP_TRAI_PHEP_HO_SO_IDOR',
+                'ho_so',
+                $hoSo['id'],
+                null,
+                ['ma_ho_so' => $maHoSo, 'user_actual' => $user['id'], 'user_owner' => $hoSo['cong_dan_id']]
+            );
+            return Response::html("<h1>403 Forbidden - Truy cập bị từ chối</h1><p>Bạn không có quyền thao tác trên hồ sơ này theo quy chế bảo mật HP-eGov.</p>", 403);
         }
 
         // Kiểm tra xem đã hoàn thành chưa
@@ -326,12 +372,24 @@ class HoSoCaNhanController extends Controller
         $maHoSo = (string)$request->routeParam('ma_ho_so', '');
         $db = Database::connection();
 
-        $stmt = $db->prepare("SELECT * FROM ho_so WHERE ma_ho_so = :ma AND cong_dan_id = :cid");
-        $stmt->execute([':ma' => $maHoSo, ':cid' => $user['id']]);
+        $stmt = $db->prepare("SELECT * FROM ho_so WHERE ma_ho_so = :ma AND is_deleted = 0 LIMIT 1");
+        $stmt->execute([':ma' => $maHoSo]);
         $hoSo = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$hoSo) {
             return $this->redirect('/cong-dan/ho-so');
+        }
+
+        if ((int)$hoSo['cong_dan_id'] !== (int)$user['id']) {
+            AuditService::log(
+                $user['id'],
+                'TRUY_CAP_TRAI_PHEP_HO_SO_IDOR',
+                'ho_so',
+                $hoSo['id'],
+                null,
+                ['ma_ho_so' => $maHoSo, 'user_actual' => $user['id'], 'user_owner' => $hoSo['cong_dan_id']]
+            );
+            return Response::html("<h1>403 Forbidden - Truy cập bị từ chối</h1><p>Bạn không có quyền thao tác trên hồ sơ này theo quy chế bảo mật HP-eGov.</p>", 403);
         }
 
         // Chặn đánh giá lặp lại (1 lần/hồ sơ)
