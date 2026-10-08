@@ -143,6 +143,13 @@ class TestRunner
         }
     }
 
+    public static function assertGreaterThanOrEqual(int|float $expected, int|float $actual, string $msg = ''): void
+    {
+        if ($actual < $expected) {
+            throw new RuntimeException($msg ?: "Kỳ vọng {$actual} lớn hơn hoặc bằng {$expected}.");
+        }
+    }
+
     public static function assertContains(mixed $needle, array|string $haystack, string $msg = ''): void
     {
         if (is_string($haystack)) {
@@ -207,5 +214,11 @@ class TestRunner
     }
 }
 
-// Chạy các bài test trong thư mục tests/Unit và tests/Integration
-TestRunner::run([__DIR__ . '/Unit', __DIR__ . '/Integration']);
+// Chạy các bài test trong thư mục tests/Unit, tests/Integration, tests/Security, tests/Functional, tests/uat
+TestRunner::run([
+    __DIR__ . '/Unit',
+    __DIR__ . '/Integration',
+    __DIR__ . '/Security',
+    __DIR__ . '/Functional',
+    __DIR__ . '/uat',
+]);

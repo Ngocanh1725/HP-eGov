@@ -117,8 +117,11 @@ class ErrorHandler
             }
 
             $res = Response::json($data, $statusCode);
-            $res->send();
-            exit;
+            if (php_sapi_name() !== 'cli') {
+                $res->send();
+                exit;
+            }
+            return $res;
         }
 
         // Kiểm tra xem có view template chuyên dụng trong app/Views/errors/{code}.php hay không
@@ -136,8 +139,11 @@ class ErrorHandler
                 'isDebug'   => $isDebug,
             ]);
             $res = Response::html($html, $statusCode);
-            $res->send();
-            exit;
+            if (php_sapi_name() !== 'cli') {
+                $res->send();
+                exit;
+            }
+            return $res;
         }
 
         // Giao diện fallback mặc định trang nhã với tone màu Navy #0B2E59
@@ -223,7 +229,10 @@ class ErrorHandler
 HTML;
 
         $res = Response::html($html, $statusCode);
-        $res->send();
-        exit;
+        if (php_sapi_name() !== 'cli') {
+            $res->send();
+            exit;
+        }
+        return $res;
     }
 }

@@ -82,6 +82,30 @@ class Response
     }
 
     /**
+     * Lấy giá trị header cụ thể
+     */
+    public function getHeader(string $name): ?string
+    {
+        return $this->headers[$name] ?? null;
+    }
+
+    /**
+     * Lấy toàn bộ headers
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Kiểm tra có tồn tại header hay không
+     */
+    public function hasHeader(string $name): bool
+    {
+        return isset($this->headers[$name]);
+    }
+
+    /**
      * Phản hồi dạng JSON
      *
      * @param mixed $data Dữ liệu cần serialize

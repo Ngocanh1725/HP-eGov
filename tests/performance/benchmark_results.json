@@ -1,0 +1,42 @@
+{
+    "API Tra cứu hồ sơ (\/api\/v1\/tra-cuu\/{ma})": {
+        "samples": 25,
+        "success": 25,
+        "avg_ms": 45.7,
+        "min_ms": 28.15,
+        "max_ms": 81.7,
+        "p50_ms": 45.32,
+        "p95_ms": 61.13,
+        "error_pct": 0
+    },
+    "API Danh mục TTHC (\/api\/v1\/thu-tuc-hanh-chinh)": {
+        "samples": 25,
+        "success": 25,
+        "avg_ms": 47.87,
+        "min_ms": 27.74,
+        "max_ms": 76.59,
+        "p50_ms": 46.6,
+        "p95_ms": 61.39,
+        "error_pct": 0
+    },
+    "API Giám sát sức khỏe (\/api\/v1\/health)": {
+        "samples": 25,
+        "success": 25,
+        "avg_ms": 63.82,
+        "min_ms": 46.2,
+        "max_ms": 83.19,
+        "p50_ms": 62.07,
+        "p95_ms": 77.51,
+        "error_pct": 0
+    },
+    "Trang Cổng DVC Hải Phòng (\/)": {
+        "samples": 25,
+        "success": 25,
+        "avg_ms": 58.41,
+        "min_ms": 26.35,
+        "max_ms": 88.52,
+        "p50_ms": 55.16,
+        "p95_ms": 88.15,
+        "error_pct": 0
+    }
+}

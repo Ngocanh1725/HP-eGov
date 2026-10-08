@@ -10,6 +10,12 @@ use TestRunner;
 
 class AuthTest
 {
+    public function setUp(): void
+    {
+        $db = Database::connection();
+        $db->exec("UPDATE nguoi_dung SET so_lan_sai = 0, khoa_den = NULL WHERE ten_dang_nhap IN ('motcua.hongbang', 'test.lockout')");
+    }
+
     public function testValidCanBoLogin(): void
     {
         // Kiểm tra đăng nhập với tài khoản mẫu motcua.hongbang / Hpegov@2026
